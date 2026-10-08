@@ -234,11 +234,10 @@ def _tools() -> List[Tool]:
 
 
 def guide_path() -> Optional[Path]:
+    """The guide shipped next to the server (package root /docs), or ISO5807_GUIDE_PATH."""
     candidates = []
     if os.environ.get("ISO5807_GUIDE_PATH"):
         candidates.append(Path(os.environ["ISO5807_GUIDE_PATH"]))
-    if os.environ.get("CLAUDE_PROJECT_DIR"):
-        candidates.append(Path(os.environ["CLAUDE_PROJECT_DIR"]) / "docs" / GUIDE_FILENAME)
     candidates.append(Path(__file__).resolve().parents[2] / "docs" / GUIDE_FILENAME)
     for path in candidates:
         if path.is_file():

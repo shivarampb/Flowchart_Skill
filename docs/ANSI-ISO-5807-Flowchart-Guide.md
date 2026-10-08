@@ -899,16 +899,23 @@ meaning, and use the standard's own flexibility everywhere else.
 
 # Part 3: Tooling
 
-The repository's MCP server (`mcp_server/`) encodes this guide:
+This guide ships inside the `flowchart_rules` Claude Code skill. The skill's `SKILL.md`
+carries the workflow and the rules Claude applies without looking them up; this guide is
+the reference it consults. The bundled engine (`mcp_server/`) turns the rules into checks,
+both as a command-line tool and as an MCP server:
 
-| Guide section | Tool |
-|---|---|
-| 1.1 to 1.3 symbols and chart types | `iso5807_symbol_reference`, resource `iso5807://symbols` |
-| All rule IDs | `iso5807_rules`, resource `iso5807://rules/{rule_id}` |
-| Part 1 conformance (auto items of 1.9) | `validate_flowchart`, `validate_mermaid` |
-| Part 2 systemic analysis | `analyze_flowchart` |
-| Rendering | `generate_mermaid` (Mermaid ≥ 11.3 extended shapes, or classic syntax for Mermaid ≥ 10.4) |
-| Method | prompts `design_flowchart`, `review_flowchart` |
+| Guide section | CLI (`mcp_server/server.py …`) | MCP tool / resource |
+|---|---|---|
+| 1.1 to 1.3 symbols and chart types | n/a | `iso5807_symbol_reference`, `iso5807://symbols` |
+| All rule IDs | n/a | `iso5807_rules`, `iso5807://rules/{rule_id}` |
+| Part 1 conformance (auto items of 1.9) | `check`, `validate`, `check-mermaid` | `validate_flowchart`, `validate_mermaid` |
+| Part 2 systemic analysis | `check`, `analyze` | `analyze_flowchart` |
+| Rendering | `check --out FILE.mmd`, `mermaid` | `generate_mermaid` |
+| Method | `SKILL.md` | prompts `design_flowchart`, `review_flowchart` |
+
+The `check` command does validation, analysis and rendering in one run; it is what the skill
+uses. Rendering targets Mermaid ≥ 11.3 (extended shapes) or, with the classic syntax,
+Mermaid ≥ 10.4.
 
 **Mermaid fidelity.** The extended shapes match the ISO outlines for most symbols. Known
 approximations, which the generator reports in `fidelity_notes`: Sequential access storage
@@ -917,9 +924,9 @@ as the beginning, marked with a class), Communication link (dotted arrow labelle
 Control transfer (thick arrow), striped symbols (the reference is the first label line), and
 Annotation (curly brace with a dotted attachment).
 
-Findings **MOD-01**, **MOD-02** and **MOD-03** concern the JSON model itself (unique ids, references to
-existing symbols, well-formed input), not the standard. See the repository `README.md` for
-installation and configuration.
+Findings **MOD-01**, **MOD-02** and **MOD-03** concern the JSON model itself (unique ids,
+references to existing symbols, well-formed input), not the standard. See the package
+`README.md` for installation and configuration.
 
 ---
 

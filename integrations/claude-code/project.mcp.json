@@ -3,7 +3,7 @@
     "iso5807-flowchart": {
       "type": "stdio",
       "command": "python3",
-      "args": ["${CLAUDE_PROJECT_DIR:-.}/mcp_server/server.py"]
+      "args": ["${CLAUDE_PROJECT_DIR:-.}/.claude/skills/flowchart_rules/mcp_server/server.py"]
     }
   }
 }

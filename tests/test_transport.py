@@ -1,10 +1,12 @@
 import json
 import subprocess
 import sys
+import tempfile
 import threading
 import unittest
 import urllib.error
 import urllib.request
+from pathlib import Path
 
 from support import ROOT, SERVER_SCRIPT
 from iso5807_mcp.app import create_server
@@ -135,9 +137,37 @@ class CliTest(unittest.TestCase):
         self.assertEqual(check.returncode, 1)
         self.assertIn("SYM-01", check.stdout)
 
+    def test_check_command(self):
+        ok = self.run_cli("check", "examples/refund-request.json")
+        self.assertEqual(ok.returncode, 0, ok.stderr)
+        self.assertTrue(ok.stdout.startswith("ISO 5807 validation: 0 errors, 0 warnings"))
+        self.assertIn("Analysis: 5 decisions, cyclomatic complexity 6", ok.stdout)
+        self.assertIn("```mermaid\n---\ntitle:", ok.stdout)
+        bad = self.run_cli("check", "examples/informal-approval.mmd", "--classic")
+        self.assertEqual(bad.returncode, 1)
+        self.assertIn("ERROR   SYM-01 [A]", bad.stdout)
+        self.assertIn("Mermaid (classic syntax, needs Mermaid >= 10.4.0)", bad.stdout)
+        as_json = self.run_cli("check", "-", "--json", "--chart-type", "system",
+                               stdin=(ROOT / "examples/order-processing.json").read_text())
+        payload = json.loads(as_json.stdout)
+        self.assertEqual(payload["validation"]["chart_type"], "system")
+        self.assertIn("flowchart TB", payload["mermaid"])
+
+    def test_check_writes_only_mermaid_files(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            target = Path(tmp) / "sub" / "order.mmd"
+            result = self.run_cli("check", "examples/order-processing.json", "--out", str(target))
+            self.assertEqual(result.returncode, 0, result.stderr)
+            self.assertTrue(target.read_text(encoding="utf-8").startswith("---\ntitle:"))
+            refused = self.run_cli("check", "examples/order-processing.json",
+                                   "--out", str(Path(tmp) / "notes.txt"))
+            self.assertEqual(refused.returncode, 2)
+            self.assertFalse((Path(tmp) / "notes.txt").exists())
+
     def test_help_and_version(self):
         self.assertIn("--http", self.run_cli("--help").stdout)
         self.assertIn("1.0.0", self.run_cli("--version").stdout)
+        self.assertIn("--out", self.run_cli("check", "--help").stdout)
 
 
 if __name__ == "__main__":

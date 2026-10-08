@@ -2,7 +2,7 @@
   "mcpServers": {
     "iso5807-flowchart": {
       "command": "python3",
-      "args": ["/ABSOLUTE/PATH/TO/Flowchart_Skill/mcp_server/server.py"]
+      "args": ["/ABSOLUTE/PATH/TO/flowchart_rules/mcp_server/server.py"]
     }
   }
 }

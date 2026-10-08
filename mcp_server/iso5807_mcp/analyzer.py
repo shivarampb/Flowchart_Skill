@@ -34,6 +34,11 @@ RETRY = re.compile(r"\b(retry|retries|again|repeat|re-?send|resubmit|wait|poll|r
                    r"re-?try|try again)\b", re.IGNORECASE)
 GUARD = re.compile(r"\b(attempts?|count(er)?|limit|max(imum)?|timeout|time-?out|times|tries|"
                    r"deadline|expired?|n\s*[<>=]|retries\s*[<>=])", re.IGNORECASE)
+COUNTER_WORD = re.compile(r"\b(attempts?|tries|retries|count(er)?|iterations?|index)\b",
+                          re.IGNORECASE)
+COUNTER_UPDATE = re.compile(r"(\b(add|increment|increase|decrement|decrease|subtract|bump|next)"
+                            r"\b|\+\+|--|[+-]=|=\s*\w+\s*[+-]\s*1\b)", re.IGNORECASE)
+COUNTER_INIT = re.compile(r"(\b(set|init|initiali[sz]e|reset|start)\b|:?=\s*0\b)", re.IGNORECASE)
 CODE_LEVEL = re.compile(
     r"(:=|\+\+|--|[+\-*/%]=|==|!=|<=|>=|\b[A-Za-z_]\w*\s*=\s*\S|\b\w+\([^)]*\)|\w\[\w*\]|;\s*$)")
 COMPOUND = re.compile(
@@ -53,6 +58,33 @@ def risky_operation(node_type: str, text: str) -> str:
         if RISKY_VERBS.match(word):
             return word
     return ""
+
+
+def _counter_anatomy(component: List[str], leaving: list, by_id, ctx: FlowContext) -> str:
+    """A loop whose exit test reads a counter needs the counter set before and updated inside."""
+    exit_sources = {e.source if hasattr(e, "source") else e[0] for e in leaving}
+    guards = [by_id[i] for i in component if i in exit_sources
+              and by_id[i].type == "decision" and COUNTER_WORD.search(by_id[i].text)]
+    if not guards:
+        return ""
+    members = set(component)
+    updated = any(COUNTER_UPDATE.search(by_id[i].text) and COUNTER_WORD.search(by_id[i].text)
+                  for i in component if by_id[i].type != "decision")
+    initialized = any(COUNTER_WORD.search(n.text) and (n.type == "preparation"
+                                                      or COUNTER_INIT.search(n.text))
+                      for n in ctx.flow_nodes if n.id not in members)
+    missing = []
+    if not initialized:
+        missing.append("nothing before the loop initializes it (add a Preparation such as "
+                       "'Set attempts = 0')")
+    if not updated:
+        missing.append("nothing inside the loop updates it (add a Process such as "
+                       "'Add 1 to attempts')")
+    if not missing:
+        return ""
+    guard = guards[0]
+    return (f"Loop guard '{guard.text}' ({guard.id}) tests a counter, but " + " and ".join(missing)
+            + ": without both, the bound never takes effect.")
 
 
 def _norm_text(text: str) -> str:
@@ -110,6 +142,9 @@ def analyze(fc: Flowchart) -> Dict[str, object]:
                 f"Retry loop over {path} has no attempt counter or timeout: a permanent failure "
                 "makes it spin forever. Add a 'Attempts < max?' Decision and a failure exit.",
                 component))
+        counter_problem = _counter_anatomy(component, leaving, by_id, ctx)
+        if counter_problem:
+            insights.append(_insight("loop", "warning", "STR-05", counter_problem, component))
 
     # -------------------------------------------------------- redundancy
     groups: Dict[str, List[str]] = defaultdict(list)

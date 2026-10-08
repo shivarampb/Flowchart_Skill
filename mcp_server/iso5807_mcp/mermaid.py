@@ -246,8 +246,8 @@ def _fidelity_notes(fc: Flowchart, syntax: str) -> List[str]:
     notes: List[str] = []
     used_types = OrderedDict((n.type, None) for n in fc.nodes)
     if syntax == "extended":
-        notes.append(f"Extended shapes need Mermaid >= {MIN_EXTENDED_VERSION}; use "
-                     "syntax='classic' for older renderers.")
+        notes.append(f"Extended shapes need Mermaid >= {MIN_EXTENDED_VERSION}; for older "
+                     "renderers use the classic syntax (syntax='classic', CLI --classic).")
         for node_type in used_types:
             symbol = kb.SYMBOLS_BY_ID.get(node_type)
             if symbol and symbol["mermaid"].get("fidelity") == "approximate":  # type: ignore[union-attr]

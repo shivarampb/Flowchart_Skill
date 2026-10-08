@@ -67,6 +67,27 @@ class InsightTest(unittest.TestCase):
         messages = " ".join(i["message"] for i in run(chart(nodes, edges))["insights"])
         self.assertNotIn("no attempt counter or timeout", messages)
 
+    def test_counter_guard_needs_initialization_and_update(self):
+        nodes = [node("s", "terminator", "Start"),
+                 node("enter", "manual_input", "Enter password"),
+                 node("ok", "decision", "Meets policy?"),
+                 node("tries", "decision", "Attempts < 3?"),
+                 node("done", "terminator", "End: changed"),
+                 node("x", "terminator", "End: gave up")]
+        edges = [edge("s", "enter"), edge("enter", "ok"), edge("ok", "done", "Yes"),
+                 edge("ok", "tries", "No"), edge("tries", "enter", "Yes"), edge("tries", "x", "No")]
+        messages = " ".join(i["message"] for i in run(chart(nodes, edges))["insights"])
+        self.assertIn("initializes it", messages)
+        self.assertIn("updates it", messages)
+        nodes.insert(1, node("init", "preparation", "Set attempts = 0"))
+        nodes.append(node("inc", "process", "Add 1 to attempts"))
+        edges[0] = edge("s", "init")
+        edges.insert(1, edge("init", "enter"))
+        edges[-2] = edge("tries", "inc", "Yes")
+        edges.append(edge("inc", "enter"))
+        messages = " ".join(i["message"] for i in run(chart(nodes, edges))["insights"])
+        self.assertNotIn("tests a counter", messages)
+
     def test_redundancy_and_happy_path(self):
         nodes, edges = linear(node("a", "process", "Validate address"),
                               node("b", "process", "Store order"),
