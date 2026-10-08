@@ -1,0 +1,18 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "iso5807-flowchart-mcp"
+version = "1.0.0"
+description = "MCP server with ANSI/ISO 5807:1985 flowchart knowledge, validation, analysis and Mermaid generation"
+readme = "../README.md"
+requires-python = ">=3.9"
+dependencies = []
+keywords = ["mcp", "flowchart", "iso-5807", "mermaid", "model-context-protocol"]
+
+[project.scripts]
+iso5807-mcp = "iso5807_mcp.cli:main"
+
+[tool.setuptools]
+packages = ["iso5807_mcp"]

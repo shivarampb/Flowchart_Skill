@@ -1,0 +1,179 @@
+{
+  "title": "Handle refund request",
+  "chart_type": "system",
+  "direction": "TB",
+  "nodes": [
+    {
+      "id": "start",
+      "type": "terminator",
+      "text": "Refund request received"
+    },
+    {
+      "id": "read_request",
+      "type": "data",
+      "text": "Read refund request"
+    },
+    {
+      "id": "find_order",
+      "type": "process",
+      "text": "Look up order"
+    },
+    {
+      "id": "order_found",
+      "type": "decision",
+      "text": "Order found?"
+    },
+    {
+      "id": "in_policy",
+      "type": "decision",
+      "text": "Within refund policy?"
+    },
+    {
+      "id": "policy_note",
+      "type": "annotation",
+      "text": "Policy P-12: bought <= 30 days ago and not refunded before",
+      "annotates": [
+        "in_policy"
+      ]
+    },
+    {
+      "id": "large",
+      "type": "decision",
+      "text": "Amount > 500 EUR?"
+    },
+    {
+      "id": "review",
+      "type": "manual_operation",
+      "text": "Manager reviews refund"
+    },
+    {
+      "id": "approved",
+      "type": "decision",
+      "text": "Approved within 48 h?"
+    },
+    {
+      "id": "refund",
+      "type": "predefined_process",
+      "text": "Issue refund"
+    },
+    {
+      "id": "refund_ok",
+      "type": "decision",
+      "text": "Refund succeeded?"
+    },
+    {
+      "id": "escalate",
+      "type": "process",
+      "text": "Escalate to finance team"
+    },
+    {
+      "id": "write_confirmation",
+      "type": "data",
+      "text": "Write refund confirmation"
+    },
+    {
+      "id": "write_rejection",
+      "type": "data",
+      "text": "Write rejection with reason"
+    },
+    {
+      "id": "end_refunded",
+      "type": "terminator",
+      "text": "End: refunded"
+    },
+    {
+      "id": "end_rejected",
+      "type": "terminator",
+      "text": "End: rejected"
+    },
+    {
+      "id": "end_escalated",
+      "type": "terminator",
+      "text": "End: escalated"
+    }
+  ],
+  "edges": [
+    {
+      "from": "start",
+      "to": "read_request"
+    },
+    {
+      "from": "read_request",
+      "to": "find_order"
+    },
+    {
+      "from": "find_order",
+      "to": "order_found"
+    },
+    {
+      "from": "order_found",
+      "to": "in_policy",
+      "label": "Yes"
+    },
+    {
+      "from": "order_found",
+      "to": "write_rejection",
+      "label": "No"
+    },
+    {
+      "from": "in_policy",
+      "to": "large",
+      "label": "Yes"
+    },
+    {
+      "from": "in_policy",
+      "to": "write_rejection",
+      "label": "No"
+    },
+    {
+      "from": "large",
+      "to": "review",
+      "label": "Yes"
+    },
+    {
+      "from": "large",
+      "to": "refund",
+      "label": "No"
+    },
+    {
+      "from": "review",
+      "to": "approved"
+    },
+    {
+      "from": "approved",
+      "to": "refund",
+      "label": "Yes"
+    },
+    {
+      "from": "approved",
+      "to": "write_rejection",
+      "label": "No"
+    },
+    {
+      "from": "refund",
+      "to": "refund_ok"
+    },
+    {
+      "from": "refund_ok",
+      "to": "write_confirmation",
+      "label": "Yes"
+    },
+    {
+      "from": "refund_ok",
+      "to": "escalate",
+      "label": "No"
+    },
+    {
+      "from": "escalate",
+      "to": "end_escalated"
+    },
+    {
+      "from": "write_confirmation",
+      "to": "end_refunded"
+    },
+    {
+      "from": "write_rejection",
+      "to": "end_rejected"
+    }
+  ]
+}

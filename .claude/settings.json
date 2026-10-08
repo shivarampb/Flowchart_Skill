@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "enabledMcpjsonServers": ["iso5807-flowchart"],
+  "permissions": {
+    "allow": [
+      "mcp__iso5807-flowchart__*",
+      "Bash(python3 mcp_server/server.py validate *)",
+      "Bash(python3 mcp_server/server.py analyze *)",
+      "Bash(python3 mcp_server/server.py mermaid *)",
+      "Bash(python3 mcp_server/server.py check-mermaid *)",
+      "Bash(python3 -m unittest *)"
+    ]
+  }
+}

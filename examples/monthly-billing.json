@@ -1,0 +1,137 @@
+{
+  "title": "Generate monthly invoices",
+  "chart_type": "program",
+  "direction": "TB",
+  "nodes": [
+    {
+      "id": "start",
+      "type": "terminator",
+      "text": "Start"
+    },
+    {
+      "id": "init",
+      "type": "preparation",
+      "text": "Set invoice count = 0"
+    },
+    {
+      "id": "loop_begin",
+      "type": "loop_limit",
+      "role": "begin",
+      "loop_id": "L1",
+      "text": "For each active customer"
+    },
+    {
+      "id": "read_usage",
+      "type": "data",
+      "text": "Read customer usage"
+    },
+    {
+      "id": "usage_found",
+      "type": "decision",
+      "text": "Usage record found?"
+    },
+    {
+      "id": "calculate",
+      "type": "predefined_process",
+      "text": "Calculate invoice"
+    },
+    {
+      "id": "write_invoice",
+      "type": "data",
+      "text": "Write invoice"
+    },
+    {
+      "id": "count",
+      "type": "process",
+      "text": "Add 1 to invoice count"
+    },
+    {
+      "id": "write_exception",
+      "type": "data",
+      "text": "Write missing-usage exception"
+    },
+    {
+      "id": "loop_end",
+      "type": "loop_limit",
+      "role": "end",
+      "loop_id": "L1",
+      "text": "Until no customer left"
+    },
+    {
+      "id": "to_summary",
+      "type": "connector",
+      "text": "A"
+    },
+    {
+      "id": "from_summary",
+      "type": "connector",
+      "text": "A"
+    },
+    {
+      "id": "summary",
+      "type": "data",
+      "text": "Write billing summary"
+    },
+    {
+      "id": "end",
+      "type": "terminator",
+      "text": "End"
+    }
+  ],
+  "edges": [
+    {
+      "from": "start",
+      "to": "init"
+    },
+    {
+      "from": "init",
+      "to": "loop_begin"
+    },
+    {
+      "from": "loop_begin",
+      "to": "read_usage"
+    },
+    {
+      "from": "read_usage",
+      "to": "usage_found"
+    },
+    {
+      "from": "usage_found",
+      "to": "calculate",
+      "label": "Yes"
+    },
+    {
+      "from": "usage_found",
+      "to": "write_exception",
+      "label": "No"
+    },
+    {
+      "from": "calculate",
+      "to": "write_invoice"
+    },
+    {
+      "from": "write_invoice",
+      "to": "count"
+    },
+    {
+      "from": "count",
+      "to": "loop_end"
+    },
+    {
+      "from": "write_exception",
+      "to": "loop_end"
+    },
+    {
+      "from": "loop_end",
+      "to": "to_summary"
+    },
+    {
+      "from": "from_summary",
+      "to": "summary"
+    },
+    {
+      "from": "summary",
+      "to": "end"
+    }
+  ]
+}

@@ -1,0 +1,9 @@
+%% A typical informal Mermaid flowchart. Run:
+%%   python3 mcp_server/server.py check-mermaid examples/informal-approval.mmd
+flowchart TD
+    A((Start)) --> B[Receive request]
+    B --> C{Approved?}
+    C -->|yes| D[Process request]
+    C --> E[Notify requester]
+    D --> F(End)
+    E --> B

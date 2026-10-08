@@ -1,0 +1,81 @@
+{
+  "title": "User login (flawed on purpose)",
+  "chart_type": "program",
+  "nodes": [
+    {
+      "id": "s",
+      "type": "start",
+      "text": "Begin"
+    },
+    {
+      "id": "input",
+      "type": "process",
+      "text": "Get user name and password"
+    },
+    {
+      "id": "audit",
+      "type": "process",
+      "text": "Log attempt"
+    },
+    {
+      "id": "check",
+      "type": "diamond",
+      "text": "credentials"
+    },
+    {
+      "id": "save",
+      "type": "process",
+      "text": "Save session?"
+    },
+    {
+      "id": "show_error",
+      "type": "document",
+      "text": "Show error"
+    },
+    {
+      "id": "jump",
+      "type": "connector",
+      "text": "A"
+    },
+    {
+      "id": "note",
+      "type": "annotation",
+      "text": "Passwords are hashed"
+    }
+  ],
+  "edges": [
+    {
+      "from": "s",
+      "to": "input"
+    },
+    {
+      "from": "input",
+      "to": "check"
+    },
+    {
+      "from": "input",
+      "to": "audit"
+    },
+    {
+      "from": "check",
+      "to": "save",
+      "label": "yes"
+    },
+    {
+      "from": "check",
+      "to": "show_error"
+    },
+    {
+      "from": "show_error",
+      "to": "input"
+    },
+    {
+      "from": "save",
+      "to": "jump"
+    },
+    {
+      "from": "note",
+      "to": "check"
+    }
+  ]
+}

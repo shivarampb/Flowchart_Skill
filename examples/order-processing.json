@@ -1,0 +1,139 @@
+{
+  "title": "Process customer order",
+  "chart_type": "program",
+  "direction": "TB",
+  "nodes": [
+    {
+      "id": "start",
+      "type": "terminator",
+      "text": "Start"
+    },
+    {
+      "id": "read_order",
+      "type": "data",
+      "text": "Read order"
+    },
+    {
+      "id": "order_valid",
+      "type": "decision",
+      "text": "Order data valid?"
+    },
+    {
+      "id": "write_rejection",
+      "type": "data",
+      "text": "Write rejection notice"
+    },
+    {
+      "id": "in_stock",
+      "type": "decision",
+      "text": "All items in stock?"
+    },
+    {
+      "id": "backorder",
+      "type": "predefined_process",
+      "text": "Create backorder"
+    },
+    {
+      "id": "charge",
+      "type": "predefined_process",
+      "text": "Charge payment"
+    },
+    {
+      "id": "approved",
+      "type": "decision",
+      "text": "Payment approved?"
+    },
+    {
+      "id": "write_decline",
+      "type": "data",
+      "text": "Write payment-declined notice"
+    },
+    {
+      "id": "schedule",
+      "type": "process",
+      "text": "Schedule shipment"
+    },
+    {
+      "id": "confirm",
+      "type": "data",
+      "text": "Write order confirmation"
+    },
+    {
+      "id": "end",
+      "type": "terminator",
+      "text": "End"
+    },
+    {
+      "id": "note_charge",
+      "type": "annotation",
+      "text": "Gateway retries (max 3) happen inside Charge payment",
+      "annotates": [
+        "charge"
+      ]
+    }
+  ],
+  "edges": [
+    {
+      "from": "start",
+      "to": "read_order"
+    },
+    {
+      "from": "read_order",
+      "to": "order_valid"
+    },
+    {
+      "from": "order_valid",
+      "to": "in_stock",
+      "label": "Yes"
+    },
+    {
+      "from": "order_valid",
+      "to": "write_rejection",
+      "label": "No"
+    },
+    {
+      "from": "write_rejection",
+      "to": "end"
+    },
+    {
+      "from": "in_stock",
+      "to": "charge",
+      "label": "Yes"
+    },
+    {
+      "from": "in_stock",
+      "to": "backorder",
+      "label": "No"
+    },
+    {
+      "from": "backorder",
+      "to": "end"
+    },
+    {
+      "from": "charge",
+      "to": "approved"
+    },
+    {
+      "from": "approved",
+      "to": "schedule",
+      "label": "Yes"
+    },
+    {
+      "from": "approved",
+      "to": "write_decline",
+      "label": "No"
+    },
+    {
+      "from": "write_decline",
+      "to": "end"
+    },
+    {
+      "from": "schedule",
+      "to": "confirm"
+    },
+    {
+      "from": "confirm",
+      "to": "end"
+    }
+  ]
+}
