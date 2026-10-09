@@ -903,14 +903,14 @@ meaning, and use the standard's own flexibility everywhere else.
 # Part 3: Tooling
 
 This guide ships inside the `flowchart_rules` Claude Code skill. The skill's `SKILL.md`
-carries the workflow and the rules Claude applies without looking them up; this guide is
-the reference it consults. The bundled engine (`mcp_server/`) turns the rules into checks,
+carries the workflow, the rules Claude applies without looking them up and an index of
+every rule with how it is enforced; this guide is the reference it consults. The bundled engine (`mcp_server/`) turns the rules into checks,
 both as a command-line tool and as an MCP server:
 
 | Guide section | CLI (`mcp_server/server.py …`) | MCP tool / resource |
 |---|---|---|
 | 1.1 to 1.3 symbols and chart types | n/a | `iso5807_symbol_reference`, `iso5807://symbols` |
-| All rule IDs | n/a | `iso5807_rules`, `iso5807://rules/{rule_id}` |
+| All rule IDs | `rules`, `rules RULE_ID` | `iso5807_rules`, `iso5807://rules/{rule_id}` |
 | Part 1 conformance (auto items of 1.9) | `check`, `validate`, `check-mermaid` | `validate_flowchart`, `validate_mermaid` |
 | Part 2 systemic analysis | `check`, `analyze` | `analyze_flowchart` |
 | Rendering | `check --out FILE.mmd`, `mermaid` | `generate_mermaid` |
