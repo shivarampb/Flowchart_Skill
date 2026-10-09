@@ -7,7 +7,7 @@ that validates charts, analyses their logic and renders them as Mermaid.
 
 | Path | What it is |
 |---|---|
-| [`SKILL.md`](SKILL.md) | The skill: workflow, rules and answer format Claude follows. |
+| [`SKILL.md`](SKILL.md) | The skill: workflow, answer format and the complete index of all 52 rules. |
 | [`docs/ANSI-ISO-5807-Flowchart-Guide.md`](docs/ANSI-ISO-5807-Flowchart-Guide.md) | Part 1: rules and syntax (symbols, flowlines, connectors, text, structure). Part 2: analysis of the skill (abstraction, systemic thinking, granularity, communication). |
 | [`mcp_server/`](mcp_server/) | The engine: `check`/`validate`/`analyze`/`mermaid` CLI and an MCP server. Python ≥ 3.9, no installs. |
 | [`examples/`](examples/) | Sample flowcharts, valid and deliberately flawed. |
@@ -139,6 +139,7 @@ python3 mcp_server/server.py validate examples/order-processing.json      # JSON
 python3 mcp_server/server.py analyze  examples/refund-request.json
 python3 mcp_server/server.py mermaid  examples/monthly-billing.json [--classic] [--out FILE.mmd]
 python3 mcp_server/server.py check-mermaid examples/informal-approval.mmd
+python3 mcp_server/server.py rules              # every rule; `rules CON-02` explains one
 ```
 
 `check` accepts a flowchart JSON model or Mermaid code and prints the findings (rule ID,
@@ -192,8 +193,10 @@ The generator's output was rendered with the real Mermaid library in headless Ch
 | `extended` (default) | Mermaid 11.3.0, 11.12.0, 12.1.0 | ISO outlines for almost every symbol (stadium, diamond, framed rectangle, document, horizontal cylinder, loop limit, …). |
 | `classic` | Mermaid 10.4.0, 10.9.1, 11.x, 12.1.0 | Bracket shapes; approximated symbols carry `iso_*` classes. Mermaid 9.4–10.3 work when edge labels are plain ASCII. |
 
-Known approximations are listed in every result (`fidelity_notes`) and in Part 3 of the
-guide. Generated code parses back into the same model, so charts round-trip.
+Generated charts request right-angle flowlines (FLW-05): verified in Mermaid 10.4 and 11.12
+(exact right angles) and 12.1 (small rounded corners); Mermaid 11.3 ignores the setting and
+draws curves. Known shape approximations are listed in every result (`fidelity_notes`) and in
+Part 3 of the guide. Generated code parses back into the same model, so charts round-trip.
 
 ### Protocol and transports
 

@@ -96,8 +96,9 @@ class RoundTripTest(unittest.TestCase):
 class GeneratorTest(unittest.TestCase):
     def test_extended_output(self):
         code, notes = generate(load_flowchart(EXAMPLES["order-processing"]))
-        header = '---\ntitle: "Process customer order"\n---\nflowchart TB\n'
-        self.assertTrue(code.startswith(header))
+        header = ('---\ntitle: "Process customer order"\nconfig:\n  flowchart:\n'
+                  '    curve: step\n---\nflowchart TB\n')
+        self.assertTrue(code.startswith(header), code[:120])
         self.assertIn('order_valid@{ shape: diam, label: "Order data valid?" }', code)
         self.assertIn("order_valid -->|Yes| in_stock", code)
         self.assertIn("charge -.- note_charge", code)
@@ -106,6 +107,7 @@ class GeneratorTest(unittest.TestCase):
 
     def test_classic_output(self):
         code, notes = generate(load_flowchart(EXAMPLES["monthly-billing"]), "classic")
+        self.assertTrue(code.startswith('%%{init: {"flowchart": {"curve": "step"}}}%%\n'))
         self.assertIn('start(["Start"])', code)
         self.assertIn('init{{"Set invoice count = 0"}}', code)
         self.assertIn('loop_begin[/"L1: For each active customer"\\]', code)

@@ -1,4 +1,5 @@
 import json
+import re
 import subprocess
 import sys
 import tempfile
@@ -132,7 +133,8 @@ class CliTest(unittest.TestCase):
     def test_mermaid_commands(self):
         result = self.run_cli("mermaid", "examples/monthly-billing.json", "--classic")
         self.assertEqual(result.returncode, 0, result.stderr)
-        self.assertTrue(result.stdout.startswith("flowchart TB\n"))
+        self.assertTrue(result.stdout.startswith('%%{init: {"flowchart": {"curve": "step"}}}%%\n'
+                                                  "flowchart TB\n"))
         check = self.run_cli("check-mermaid", "examples/informal-approval.mmd")
         self.assertEqual(check.returncode, 1)
         self.assertIn("SYM-01", check.stdout)
@@ -163,6 +165,18 @@ class CliTest(unittest.TestCase):
                                    "--out", str(Path(tmp) / "notes.txt"))
             self.assertEqual(refused.returncode, 2)
             self.assertFalse((Path(tmp) / "notes.txt").exists())
+
+    def test_rules_command(self):
+        listing = self.run_cli("rules")
+        self.assertEqual(listing.returncode, 0, listing.stderr)
+        self.assertEqual(len(set(re.findall(r"`([A-Z]{3}-\d\d)`", listing.stdout))), 52)
+        one = self.run_cli("rules", "con-02")
+        self.assertEqual(one.returncode, 0)
+        self.assertIn("Rule: Every out-connector has exactly one in-connector", one.stdout)
+        self.assertEqual(self.run_cli("rules", "XYZ-01").returncode, 2)
+        category = self.run_cli("rules", "--category", "connectors")
+        self.assertEqual(set(re.findall(r"`([A-Z]{3}-\d\d)`", category.stdout)),
+                         {"CON-01", "CON-02", "CON-03", "CON-04", "CON-05"})
 
     def test_help_and_version(self):
         self.assertIn("--http", self.run_cli("--help").stdout)

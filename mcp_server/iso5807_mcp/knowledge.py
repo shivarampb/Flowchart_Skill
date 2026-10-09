@@ -1124,3 +1124,42 @@ def rules_reference(category: Optional[str] = None, rule_id: Optional[str] = Non
         "count": len(entries),
         "rules": entries,
     }
+
+
+CHECK_LABELS = {"automatic": "checked", "heuristic": "analysis", "manual": "judgment"}
+BASIS_LABELS = {"ISO 5807": "ISO", "Practice": "Practice", "Schema": "Schema"}
+
+
+def rule_index_markdown(category: Optional[str] = None) -> str:
+    """Every rule as a compact Markdown index (embedded in SKILL.md, printed by `rules`).
+
+    Rules that no tool can check from a JSON model ("judgment") carry their full statement,
+    because whoever draws the chart has to apply them unaided.
+    """
+    lines: List[str] = []
+    for key, description in RULE_CATEGORIES.items():
+        if category and key != category:
+            continue
+        lines += [f"**{description}**", ""]
+        for rule in RULES:
+            if rule["category"] != key:
+                continue
+            tags = (f"{BASIS_LABELS[rule['basis']]}, {rule['severity']}, "
+                    f"{CHECK_LABELS[rule['check']]}")
+            line = f"- `{rule['id']}` {rule['title']} ({tags})"
+            if rule["check"] == "manual":
+                line += f": {rule['rule']}"
+            lines.append(line)
+        lines.append("")
+    return "\n".join(lines).rstrip() + "\n"
+
+
+def rule_detail_text(rule_id: str) -> str:
+    """One rule in full, as plain text (raises KeyError for an unknown id)."""
+    rule = RULES_BY_ID[rule_id.strip().upper()]
+    return (f"{rule['id']}  {rule['title']}\n"
+            f"Basis: {rule['basis']} | default severity: {rule['severity']} | "
+            f"check: {CHECK_LABELS[rule['check']]} | category: {rule['category']}\n"
+            f"Rule: {rule['rule']}\n"
+            f"Why:  {rule['rationale']}\n"
+            f"Fix:  {rule['fix']}\n")

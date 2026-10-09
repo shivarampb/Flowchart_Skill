@@ -19,7 +19,7 @@ from .model import Flowchart, FlowchartInputError, load_flowchart
 from .transport import serve_http, serve_stdio
 from .validator import validate
 
-COMMANDS = ("check", "validate", "analyze", "mermaid", "check-mermaid")
+COMMANDS = ("check", "validate", "analyze", "mermaid", "check-mermaid", "rules")
 
 
 def _serve_parser() -> argparse.ArgumentParser:
@@ -27,7 +27,7 @@ def _serve_parser() -> argparse.ArgumentParser:
         prog="iso5807-mcp",
         description="ANSI/ISO 5807:1985 flowchart MCP server. Serves stdio by default.",
         epilog="Checks without a client: iso5807-mcp {check,validate,analyze,mermaid,"
-               "check-mermaid} FILE (use '-' for stdin; see 'iso5807-mcp check --help').")
+               "check-mermaid} FILE (use '-' for stdin), or iso5807-mcp rules [RULE_ID].")
     parser.add_argument("--version", action="version", version=f"%(prog)s {__version__}")
     parser.add_argument("--http", action="store_true",
                         default=os.environ.get("ISO5807_MCP_TRANSPORT", "").lower() == "http",
@@ -84,6 +84,10 @@ def _tool_parser() -> argparse.ArgumentParser:
     cmd.add_argument("file")
     cmd.add_argument("--chart-type", default="program", choices=chart_types)
     cmd.add_argument("--lenient", action="store_true")
+    cmd = sub.add_parser("rules", help="list every rule (Markdown index) or explain one rule")
+    cmd.add_argument("rule_id", nargs="?", help="a rule ID such as CON-02")
+    cmd.add_argument("--category", choices=list(kb.RULE_CATEGORIES),
+                     help="list only the rules of this category")
     return parser
 
 
@@ -190,6 +194,17 @@ def _run_command(argv: List[str]) -> int:
     _utf8_output()
     args = _tool_parser().parse_args(argv)
     try:
+        if args.command == "rules":
+            if args.rule_id:
+                try:
+                    sys.stdout.write(kb.rule_detail_text(args.rule_id))
+                except KeyError:
+                    print(f"error: unknown rule ID {args.rule_id!r}; run 'rules' for the list",
+                          file=sys.stderr)
+                    return 2
+            else:
+                sys.stdout.write(kb.rule_index_markdown(args.category))
+            return 0
         if args.command == "check":
             return _check(args)
         if args.command == "check-mermaid":

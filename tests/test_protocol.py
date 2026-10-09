@@ -102,7 +102,8 @@ class ProtocolTest(unittest.TestCase):
         result = self.call("generate_mermaid", {"flowchart": EXAMPLES["order-processing"],
                                                 "syntax": "classic"})
         text = result["content"][0]["text"]
-        self.assertIn("```mermaid\nflowchart TB\n", text)
+        self.assertIn("```mermaid\n%%{init: {\"flowchart\": {\"curve\": \"step\"}}}%%\n"
+                      "flowchart TB\n", text)
         summary = json.loads(result["content"][1]["text"])
         self.assertEqual(summary["min_mermaid_version"], "10.4.0")
         self.assertTrue(summary["valid"])

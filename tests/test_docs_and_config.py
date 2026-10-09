@@ -116,6 +116,14 @@ class SkillTest(unittest.TestCase):
         self.assertIn("check", used)
         self.assertEqual(used - set(COMMANDS), set())
 
+    def test_rule_index_is_complete_and_current(self):
+        match = re.search(r"<!-- BEGIN RULE INDEX[^\n]*-->\n(.*?)<!-- END RULE INDEX -->",
+                          self.text, re.S)
+        self.assertIsNotNone(match, "SKILL.md lacks the generated rule index")
+        self.assertEqual(match.group(1), kb.rule_index_markdown(),
+                         "regenerate with: python3 mcp_server/server.py rules")
+        self.assertEqual(set(kb.RULES_BY_ID) - set(RULE_ID.findall(self.text)), set())
+
     def test_json_example_is_conformant(self):
         block = re.search(r"```json\n(.*?)```", self.text, re.S).group(1)
         report = validate(load_flowchart(block))
