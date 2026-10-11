@@ -25,20 +25,20 @@ Each rule was checked three ways.
    template.
 2. **Against the checker.** [`tests/test_rule_coverage.py`](../tests/test_rule_coverage.py)
    gives each of the 40 checked and analysis rules a violating chart and a conformant twin.
-   - On the violating chart, the rule must fire with its documented severity.
-   - On the conformant chart, it must stay silent.
-   - The two partly checked rules are probed on the symptom the checker sees: SYM-03 on
-     Mermaid outlines, SYM-05 on a striped Predefined process.
-   - The suite fails when a rule that is not marked judgment has no probe.
-   - It also fails when the code reports a rule marked judgment.
-   - Twenty-one structural rules are probed again after a round trip through Mermaid, so
-     Mermaid input is checked like JSON.
+    - On the violating chart, the rule must fire with its documented severity.
+    - On the conformant chart, it must stay silent.
+    - The two partly checked rules are probed on the symptom the checker sees: SYM-03 on
+      Mermaid outlines, SYM-05 on a striped Predefined process.
+    - The suite fails when a rule that is not marked judgment has no probe.
+    - It also fails when the code reports a rule marked judgment.
+    - Twenty-one structural rules are probed again after a round trip through Mermaid, so
+      Mermaid input is checked like JSON.
 3. **Across the documents.** Each rule's statement, basis, severity and enforcement label was
    compared across the knowledge base, the guide (including the 1.9 checklist), `SKILL.md`,
    the README and the claude.ai project instructions. Tests now keep these parts in step:
-   - the `SKILL.md` rule index, which is generated from the knowledge base;
-   - the coverage of the 1.9 checklist;
-   - this record's rule table.
+    - the `SKILL.md` rule index, which is generated from the knowledge base;
+    - the coverage of the 1.9 checklist;
+    - this record's rule table.
 
 ## Corrections made
 
