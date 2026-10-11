@@ -80,8 +80,8 @@ NODE_TYPE_DOC = (
     "preparation, decision, parallel_mode, loop_limit. Data family: data, stored_data, "
     "internal_storage, sequential_access_storage, direct_access_storage, document, "
     "manual_input, card, punched_tape, display. Special: terminator, connector, annotation, "
-    "ellipsis. Legacy ANSI X3.5: off_page_connector. Common aliases (start, end, io, "
-    "diamond, subroutine, ...) are accepted."
+    "ellipsis. Non-ISO (IBM template): off_page_connector. Common aliases (start, end, "
+    "io, diamond, subroutine, ...) are accepted."
 )
 
 FLOWCHART_SCHEMA: Dict[str, Any] = {

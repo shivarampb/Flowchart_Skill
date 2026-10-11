@@ -44,8 +44,9 @@ Mermaid code. Exit code 0 = conformant, 1 = errors to fix, 2 = unreadable input.
 Options: `--out FILE.mmd` also saves the Mermaid code; `--classic` renders for Mermaid 10.4
 to 11.2 (the default needs Mermaid 11.3+); `--chart-type` (`data`, `system`,
 `program_network`, `system_resources`) sets the chart type of Mermaid input; `--lenient`
-accepts ANSI X3.5 legacy symbols. The single steps `validate`, `analyze`, `mermaid` and
-`check-mermaid` print JSON. `rules` lists every rule and `rules CON-02` explains one.
+stops reporting the non-ISO pentagon off-page connector (CON-04) and chart-type mixing
+(SYM-06). The single steps `validate`, `analyze`, `mermaid` and `check-mermaid` print
+JSON. `rules` lists every rule and `rules CON-02` explains one.
 
 If `python3` is not found (Windows), use `python`. If the `mcp__iso5807-flowchart__*` tools
 are connected, you may use them instead; they run the same checks without files.
@@ -59,12 +60,15 @@ are connected, you may use them instead; they run the same checks without files.
    would change the chart substantially; otherwise state the assumption.
 2. **Extract.** List steps as verb + object at one level of detail. Turn every fallible or
    conditional verb (*check, verify, approve, find, try, if, unless, when, until*) into a
-   Decision with a testable, quantified question and complementary labelled exits; give
-   multi-way Decisions an `Otherwise` exit.
+   Decision with a testable question (with threshold and unit when it is numeric) and
+   complementary labelled exits; give multi-way Decisions an `Otherwise` exit unless the
+   outcomes are exhaustive by construction (`<0`, `=0`, `>0`).
 3. **Close.** Every loop has an exit and a bound: a timeout, or a counter that a Preparation
    sets before the loop and a step inside the loop updates. Every fallible operation
-   (lookup, call, validation, payment, approval) is followed by an outcome Decision whose
-   failure path is handled. Every path ends at an end Terminator, one per distinct outcome.
+   (input/output, lookup, call, validation, payment, approval) is followed by an outcome
+   Decision whose failure path is handled. Every path ends at an end Terminator, one per
+   distinct outcome (or at an out-connector; in data and system charts a data symbol may be
+   the sink).
 4. **Model.** Write the JSON model (format below) with the Write tool to
    `flowcharts/<slug>.json` in the project, unless the user names another place.
 5. **Check.** Run `check` on the file with `--out flowcharts/<slug>.mmd`. Fix every ERROR
@@ -81,8 +85,10 @@ are connected, you may use them instead; they run the same checks without files.
 - **Text, pseudocode, BPMN, UML:** use the design steps. Mapping: start/end event →
   Terminator; task → Process (Manual operation for a person's task); exclusive gateway or
   `if` → Decision; merge → line junction (never a symbol); parallel gateway or fork/join
-  bar → Parallel mode; sub-process or `call f()` → Predefined process; `for each`/`while` →
-  loop limit pair or Decision back-edge; initialization (`x = 0`) → Preparation.
+  bar → Parallel mode; `call f()` or a sub-process specified elsewhere → Predefined
+  process; a sub-process detailed in the same documentation → striped Process
+  (`detail_ref`); `for each`/`while` → loop limit pair or Decision back-edge;
+  initialization (`x = 0`) → Preparation.
 
 ## Answer format
 
@@ -138,21 +144,24 @@ end has incoming lines only. Process (rectangle) is verb + object, never a quest
 specified elsewhere; a striped symbol points to detail in this documentation set.
 Preparation (hexagon) initializes. Loop limits come in begin/end pairs with one `loop_id`.
 Parallel mode (double bar) forks or joins concurrent paths. Program flowcharts use the basic
-Data symbol (parallelogram) for input/output; media-specific data symbols and Manual
-operation belong to data and system flowcharts. Only ISO symbols; colour carries no meaning.
+Data symbol (parallelogram) for input/output; the other data symbols (Stored data and the
+media-specific ones) and Manual operation belong to data and system flowcharts. Only ISO
+symbols, drawn with their standard outlines; colour carries no meaning.
 
 **Flowlines.** Normal flow runs top to bottom and left to right; arrowheads are mandatory
-against it and allowed everywhere. Only Decisions and Parallel mode branch. Merges are line
-junctions. Crossings mean nothing; avoid them. No self-loops, no duplicate lines.
+against it and allowed everywhere. In program flowcharts only Decisions and Parallel mode
+branch. Merges are line junctions. Crossings mean nothing; avoid them. No self-loops, no
+duplicate lines.
 
 **Connectors.** A small circle is either an exit (out-connector) or an entry (in-connector).
 Matching connectors share one short identifier, and an identifier marks only one
 in-connector. Cross-page continuation uses the same circle with a page-qualified identifier
-(`3A`, `off_page: true`); the pentagon off-page connector is ANSI X3.5 legacy (CON-04).
+(`3A`, `off_page: true`); the pentagon off-page connector is an IBM template symbol, not
+ISO (CON-04).
 
 **Text.** Minimum text in symbols; details go into an Annotation joined by a dashed line,
 never onto the flow path. Text reads left to right whatever the flow direction. Decisions
-are closed, positive, quantified questions (`Amount > 500 EUR?`).
+are closed, positive questions, with threshold and unit when numeric (`Amount > 500 EUR?`).
 
 **Granularity.** One level of detail per chart and about 30 symbols per page at most; push
 detail into Predefined processes or striped symbols. Do not mix code-level steps
@@ -161,36 +170,41 @@ detail into Predefined processes or striped symbols. Do not mix code-level steps
 ## Complete rule index
 
 Every rule the checker knows. Each entry gives the basis (ISO = the standard, Practice =
-professional practice beyond it, Schema = the JSON model), the default severity, and how the
-rule is enforced: **checked** means the `check` report flags violations; **analysis** means
-it appears as a logic insight; **judgment** means no tool can see it in a JSON model, so you
-apply it yourself. The generated Mermaid already satisfies three judgment rules: arrowheads
-on every line (FLW-02), horizontal text (TXT-02) and right-angle flowlines (FLW-05; Mermaid
-11.3 ignores that setting and draws curves).
+professional practice beyond it, Schema = the JSON model), the default severity (that of a
+typical violation), and how the rule is enforced:
+- **checked**: the `check` report flags violations;
+- **analysis**: violations appear as logic insights;
+- **partly checked**: the report flags one symptom (non-ISO Mermaid outlines for SYM-03, a
+  striped Predefined process for SYM-05), and you apply the rest;
+- **judgment**: no tool can see it, so you apply it yourself.
+
+Partly checked and judgment rules carry their full statement. The generated Mermaid already
+satisfies three judgment rules: arrowheads on every line (FLW-02), horizontal text (TXT-02)
+and right-angle flowlines (FLW-05; Mermaid 11.3 ignores that setting and draws curves).
 
 <!-- BEGIN RULE INDEX (generated by: server.py rules) -->
 **Core symbols: choice, geometry and meaning**
 
 - `SYM-01` Use only standard symbols, with their defined meaning (ISO, error, checked)
-- `SYM-02` Basic symbols by default, specific symbols when the medium or nature matters (ISO, info, judgment): The basic symbols (Process, Data, Stored data, Line) may always be used. Use a specific symbol (Document, Manual operation, Direct access storage, ...) only when the medium or the nature of the function is known and relevant.
-- `SYM-03` Shape carries meaning; size, colour and shading do not (ISO, info, judgment): Symbols may be drawn in any size, but their shape must stay recognisable and their proportions consistent within a chart. Do not rotate or mirror symbols. Colour, shading and line weight carry no meaning in the standard.
+- `SYM-02` Basic symbols by default, specific symbols when the medium or nature matters (ISO, info, judgment): Use a basic symbol (Process, Data, Stored data, Line) when the precise nature of the process or the data medium is not known or need not be shown; use a specific symbol (Document, Manual operation, Direct access storage, ...) when it is known and must be shown. The chart type decides which families appear at all (SYM-06).
+- `SYM-03` Shape carries meaning; size, colour and shading do not (ISO, warning, partly checked): A symbol identifies its function by its outline, whatever the text inside. Keep the standard outlines (do not change their angles or proportions) and keep symbol sizes as uniform as possible. Any orientation is allowed, horizontal preferred; a mirror image means the same but is not recommended. Colour, shading and line weight carry no meaning in the standard.
 - `SYM-04` A striped symbol points to a detailed representation (ISO, error, checked)
-- `SYM-05` Predefined process names a function specified elsewhere (ISO, info, judgment): Use the Predefined process for a named process (subroutine, module, library function) whose steps are specified elsewhere; use a striped symbol when the detail is in the same documentation set.
+- `SYM-05` Predefined process names a function specified elsewhere (ISO, info, partly checked): Use the Predefined process for a named process (subroutine, module, library function) whose steps are specified elsewhere; use a striped symbol when the detail is in the same documentation set.
 - `SYM-06` Use symbols appropriate to the chart type (ISO, warning, checked)
 - `SYM-07` Multiple-symbol convention applies to data symbols (ISO, warning, checked)
 - `SYM-08` A Terminator is either a start or an end (ISO, error, checked)
 - `SYM-09` A Decision has one entry and two or more exits (ISO, error, checked)
 - `SYM-10` Parallel mode synchronizes two or more paths (ISO, warning, checked)
 - `SYM-11` Loop limits come in matched pairs with one identifier (ISO, error, checked)
-- `SYM-12` Ellipsis shows omitted symbols (ISO, info, checked)
+- `SYM-12` Ellipsis shows omitted symbols (ISO, warning, checked)
 
 **Flowlines: direction, arrowheads, crossings, junctions, line types**
 
 - `FLW-01` Normal flow direction is top-to-bottom and left-to-right (ISO, warning, checked)
-- `FLW-02` Arrowheads are mandatory against the normal direction (ISO, warning, judgment): Every flowline whose direction is not the normal one (upward or right-to-left, e.g. a loop back-edge) carries an arrowhead. Arrowheads may be used on any line for clarity; in program flowcharts put them on all flowlines.
+- `FLW-02` Arrowheads are mandatory against the normal direction (ISO, warning, judgment): Every flowline whose direction is not the normal one (upward or right-to-left, e.g. a loop back-edge) carries an arrowhead. Arrowheads may be used on any line to improve readability.
 - `FLW-03` Crossing lines have no logical relationship (ISO, info, judgment): Two flowlines that cross do not join and have no logical relationship. Keep crossings to a minimum by moving symbols or using connectors.
 - `FLW-04` Junctions merge incoming lines into one outgoing line (ISO, info, judgment): Two or more incoming flowlines may join into a single outgoing flowline. Draw joins as offset T-junctions with the arrowhead showing the merged direction; never make a four-way join that looks like a crossing.
-- `FLW-05` Route lines orthogonally and consistently (Practice, info, judgment): Draw flowlines as horizontal and vertical segments. Enter symbols at the top (or left) and leave at the bottom (or right); Decision exits leave from the vertices.
+- `FLW-05` Route lines orthogonally and consistently (Practice, info, judgment): Draw flowlines as horizontal and vertical segments, let Decision exits leave from the vertices, and place Decision outcomes the same way in every chart of a documentation set (for example Yes continues down, No branches right).
 - `FLW-06` Only Decisions (and Parallel mode) branch (Practice, error, checked)
 - `FLW-07` A flowline connects two different symbols (Practice, error, checked)
 - `FLW-08` Line variants keep their defined meaning (ISO, warning, checked)
@@ -201,7 +215,7 @@ on every line (FLW-02), horizontal text (TXT-02) and right-angle flowlines (FLW-
 - `CON-01` A connector breaks a line: it is an exit or an entry, never both (ISO, error, checked)
 - `CON-02` Matching connectors carry the same unique identifier (ISO, error, checked)
 - `CON-03` Keep connector identifiers short and systematic (Practice, warning, checked)
-- `CON-04` Off-page connector is an ANSI X3.5 legacy symbol (ISO, warning, checked)
+- `CON-04` The pentagon off-page connector is not an ISO symbol (ISO, warning, checked)
 - `CON-05` Connectors must not hide structure (Practice, info, judgment): Use connectors to avoid long or crossing lines and to continue across pages. Never use them to jump into the middle of a loop or decision structure, and prefer a direct line when it is short and uncluttered.
 
 **Text, labels and annotation**
@@ -209,7 +223,7 @@ on every line (FLW-02), horizontal text (TXT-02) and right-angle flowlines (FLW-
 - `TXT-01` Minimum text inside symbols (ISO, warning, checked)
 - `TXT-02` Text reads left-to-right and top-to-bottom (ISO, info, judgment): Text inside and beside symbols is written to be read from left to right and top to bottom, whatever the direction of flow.
 - `TXT-03` Label every Decision exit with its outcome (ISO, error, checked)
-- `TXT-04` Place symbol identifiers and descriptions outside the symbol (ISO, info, judgment): A symbol identifier (for cross-reference with other documentation) is placed outside the symbol near its top, consistently on the same side throughout the chart; a symbol description may be placed beside it. A striped symbol's reference goes inside the stripe.
+- `TXT-04` Symbol identifier at the upper left, description at the upper right (ISO, info, judgment): A symbol identifier, which lets other documents such as program listings refer to the symbol, is written at the upper left of the symbol; a symbol description (a cross-reference or a note on the symbol's particular use) at the upper right. Neither belongs in the symbol's own text. A striped symbol's reference goes between the stripe and the top edge.
 - `TXT-05` Process text is an imperative action (Practice, warning, checked)
 - `TXT-06` Decision text is a testable condition (Practice, info, checked)
 - `TXT-07` Every symbol carries text (Practice, warning, checked)
@@ -225,7 +239,7 @@ on every line (FLW-02), horizontal text (TXT-02) and right-angle flowlines (FLW-
 - `STR-05` Every loop has an exit condition (Practice, error, checked)
 - `STR-06` Decision outcomes are complete (Practice, warning, checked)
 - `STR-07` No redundant Decisions (Practice, warning, checked)
-- `STR-08` Model failure states (Practice, info, analysis)
+- `STR-08` Model failure states (Practice, warning, analysis)
 - `STR-09` Data flowcharts alternate data and processing (ISO, warning, checked)
 
 **Layout, density and granularity**

@@ -48,6 +48,22 @@ class GuideTest(unittest.TestCase):
         self.assertEqual(set(kb.RULES_BY_ID) - mentioned, set(), "rules missing from the guide")
         self.assertEqual(mentioned - set(kb.RULES_BY_ID), set(), "unknown rule ids in the guide")
 
+    def test_checklist_covers_every_rule_with_its_enforcement(self):
+        section = self.guide.split("## 1.9 Conformance checklist", 1)[1].split("\n---", 1)[0]
+        covered = {}
+        for row in re.findall(r"^\| \d+ \| [^|]+ \| ([^|]+) \| ([^|]+) \|$", section, re.M):
+            ids, how = row
+            for first, last in re.findall(r"([A-Z]{3}-\d\d) … ([A-Z]{3}-\d\d)", ids):
+                prefix, lo, hi = first[:4], int(first[4:]), int(last[4:])
+                ids += " " + " ".join(f"{prefix}{n:02d}" for n in range(lo, hi + 1))
+            for rule_id in RULE_ID.findall(ids):
+                covered[rule_id] = how
+        self.assertEqual(set(kb.RULES_BY_ID) - set(covered), set(), "rules missing from 1.9")
+        labels = {"automatic": "auto", "heuristic": "analyze", "partial": "review",
+                  "manual": "review"}
+        for rule_id, how in covered.items():
+            self.assertIn(labels[kb.RULES_BY_ID[rule_id]["check"]], how, rule_id)
+
     def test_every_iso_symbol_is_documented(self):
         for symbol in kb.SYMBOLS:
             if symbol["family"] != "line":
@@ -75,6 +91,17 @@ class GuideTest(unittest.TestCase):
             for name in set(pattern.findall(path.read_text(encoding="utf-8"))):
                 if not name.startswith("iso5807_mcp"):
                     self.assertIn(name, tools, f"{path.name} mentions unknown tool {name}")
+
+
+class VerificationRecordTest(unittest.TestCase):
+    def test_every_rule_has_a_row_with_its_basis(self):
+        text = (ROOT / "docs" / "RULE-VERIFICATION.md").read_text(encoding="utf-8")
+        table = text.split("## Rule by rule", 1)[1]
+        rows = dict(re.findall(r"^\| ((?:SYM|FLW|CON|TXT|STR|LAY|MOD)-\d\d) \| (\w+) \|",
+                               table, re.M))
+        self.assertEqual(set(rows), set(kb.RULES_BY_ID))
+        for rule_id, basis in rows.items():
+            self.assertEqual(basis, kb.BASIS_LABELS[kb.RULES_BY_ID[rule_id]["basis"]], rule_id)
 
 
 class ExamplesTest(unittest.TestCase):

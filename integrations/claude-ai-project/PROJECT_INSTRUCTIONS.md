@@ -23,11 +23,12 @@ Method:
    people, documents or several systems take part), audience, abstraction level, start and
    end boundaries.
 2. Extract: steps as verb + object at one level; every fallible or conditional verb
-   (check, verify, approve, find, try, if, unless, until) becomes a Decision with a testable,
-   quantified question and complementary labelled exits; multi-way Decisions get an
-   "Otherwise" exit.
-3. Close: every loop has an exit and a bound, every fallible operation has an outcome
-   Decision, every path ends at an end Terminator (one per distinct outcome).
+   (check, verify, approve, find, try, if, unless, until) becomes a Decision with a testable
+   question (threshold and unit when numeric) and complementary labelled exits; multi-way
+   Decisions get an "Otherwise" exit unless the outcomes are exhaustive (<0, =0, >0).
+3. Close: every loop has an exit and a bound, every fallible operation (input/output,
+   lookup, call, validation, payment, approval) has an outcome Decision, every path ends at
+   an end Terminator (one per distinct outcome) or an out-connector.
 
 Rules:
 - Symbols: Terminator (stadium) only at start or end; Process (rectangle) never holds a
@@ -35,15 +36,17 @@ Rules:
   exits; Predefined process (double side lines) for routines specified elsewhere;
   Preparation (hexagon) for initialization; loop limits in begin/end pairs with one
   identifier; Parallel mode (double bar) for fork/join. Program flowcharts use the basic Data
-  symbol (parallelogram) for input/output. Only ISO symbols; colour carries no meaning.
+  symbol (parallelogram) for input/output and no other data symbol. Only ISO symbols, drawn
+  with their standard outlines; colour carries no meaning.
 - Flowlines: top-to-bottom and left-to-right; arrowheads on every line against that
-  direction (and allowed everywhere); only Decisions and Parallel mode branch; merges are line
-  junctions; avoid crossings.
+  direction (and allowed everywhere); in program flowcharts only Decisions and Parallel mode
+  branch; merges are line junctions; avoid crossings.
 - Connectors: a circle is an exit or an entry, never both; matching connectors share one
   short identifier; cross-page continuation uses a page-qualified identifier (e.g. 3A). The
-  pentagon off-page connector is ANSI X3.5 legacy.
+  pentagon off-page connector is an IBM template symbol, not part of ISO 5807.
 - Text: minimum text in symbols; detail goes into an Annotation joined by a dashed line;
-  Decisions are closed, positive, quantified questions.
+  Decisions are closed, positive questions, with threshold and unit when numeric. A symbol
+  identifier goes at the upper left of the symbol, a description at the upper right.
 - Granularity: one level of abstraction per chart, about 30 symbols per page at most;
   decompose with Predefined processes or striped symbols.
 

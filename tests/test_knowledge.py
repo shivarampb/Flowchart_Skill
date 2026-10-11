@@ -13,7 +13,8 @@ class KnowledgeBaseTest(unittest.TestCase):
             self.assertIn(rule["category"], kb.RULE_CATEGORIES, rule["id"])
             self.assertIn(rule["severity"], kb.SEVERITIES, rule["id"])
             self.assertIn(rule["basis"], ("ISO 5807", "Practice", "Schema"), rule["id"])
-            self.assertIn(rule["check"], ("automatic", "heuristic", "manual"), rule["id"])
+            self.assertIn(rule["check"], ("automatic", "heuristic", "partial", "manual"),
+                          rule["id"])
             for key in ("title", "rule", "rationale", "fix"):
                 self.assertTrue(rule[key].strip(), f"{rule['id']} lacks {key}")
             self.assertRegex(rule["id"], r"^(SYM|FLW|CON|TXT|STR|LAY|MOD)-\d\d$")
@@ -31,7 +32,8 @@ class KnowledgeBaseTest(unittest.TestCase):
     def test_iso_symbol_set_is_complete(self):
         iso = {s["id"] for s in kb.SYMBOLS if s["standard"] == "ISO 5807"}
         self.assertEqual(len(iso), 25)  # 10 data + 7 process + 4 line + 4 special
-        self.assertEqual(kb.SYMBOLS_BY_ID["off_page_connector"]["standard"], "ANSI X3.5 (legacy)")
+        self.assertEqual(kb.SYMBOLS_BY_ID["off_page_connector"]["standard"],
+                         "IBM template (non-ISO)")
 
     def test_type_aliases(self):
         self.assertEqual(kb.resolve_type("Start"), ("terminator", None))

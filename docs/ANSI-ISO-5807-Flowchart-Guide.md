@@ -22,8 +22,8 @@ This guide has three parts:
 > | Tag | Meaning |
 > |---|---|
 > | **[ISO]** | Paraphrase of a provision of ISO 5807:1985. Conformance requirement. |
-> | **[Practice]** | Widely adopted professional practice (structured design, testing, readability) that goes beyond the letter of the standard. The validator still enforces it, because a chart that breaks it is ambiguous or wrong in practice. |
-> | **[Legacy]** | ANSI X3.5-1970 convention that ISO 5807 does not define. Allowed only in lenient mode. |
+> | **[Practice]** | Widely adopted professional practice (structured design, testing, readability) that goes beyond the letter of the standard. The tools check it wherever they can, because a chart that breaks it is ambiguous or wrong in practice. |
+> | **[Legacy]** | A template symbol that neither ISO 5807 nor ANSI X3.5-1970 defines: the IBM pentagon off-page connector. Strict checks report it as a warning (CON-04); lenient mode accepts it. |
 >
 > Rule IDs (`SYM-04`, `CON-02`, …) are this guide's own identifiers, not ISO clause numbers.
 > The same IDs appear in the MCP server's findings, so a tool message always points back to
@@ -69,11 +69,12 @@ type decides which symbols make sense. Name the chart type before you draw the f
 | **Program network chart** (`program_network`) | Which programs activate which, and what data do they share? | One process symbol per program (each program appears **once**), data symbols, activation and data lines. |
 | **System resources chart** (`system_resources`) | Which data units and processing units make up the configuration? | Data symbols for devices, process symbols for processors, lines for data and control transfer. |
 
-**SYM-06 [ISO]: use symbols that belong to the chart type.** A program flowchart describes
-control flow inside a program, so a *Punched card* or *Manual operation* symbol in it mixes
-two charts' questions. Use the basic Data symbol for I/O, or make it a system flowchart. In
-program network and system resources charts there is no decision logic at all, so Decisions
-and Loop limits do not belong there.
+**SYM-06 [ISO]: use symbols that belong to the chart type.** ISO 5807 builds a program
+flowchart from process, line and special symbols; the basic Data symbol for input/output is
+accepted practice. Any other data symbol (Stored data, *Punched card*, …) or a *Manual
+operation* in a program flowchart mixes two charts' questions: use Data for I/O, or make it
+a system flowchart. In program network and system resources charts there is no decision
+logic at all, so Decisions and Loop limits do not belong there.
 
 ## 1.2 Principles of the symbol system
 
@@ -84,23 +85,29 @@ The standard groups its symbols into four families:
 | **Data** | Data, Stored data | Internal storage, Sequential access storage, Direct access storage, Document, Manual input, Card, Punched tape, Display |
 | **Process** | Process | Predefined process, Manual operation, Preparation, Decision, Parallel mode, Loop limit |
 | **Line** | Line (flowline) | Control transfer, Communication link, Dashed line |
-| **Special** | n/a | Connector, Terminator, Annotation, Ellipsis |
+| **Special** | n/a | n/a |
+
+The four special symbols (Connector, Terminator, Annotation, Ellipsis) are neither basic nor
+specific: they make the chart easier to draw and read.
 
 Three principles govern all of them:
 
 - **SYM-01 [ISO]: closed vocabulary.** Use only the standard's symbols, each with its defined
   meaning. Inventing shapes ("a star for urgent steps") or reusing a shape with another meaning
   ("a circle for start") breaks the shared language that makes a standard useful.
-- **SYM-02 [ISO]: basic by default, specific by intent.** A basic symbol is always correct.
-  A specific symbol adds information ("this is a document", "a person does this") and is
-  used only when that information is known **and** relevant to the chart's purpose. A data
-  flowchart about media uses Document and Direct access storage; a program flowchart uses
-  Data.
-- **SYM-03 [ISO]: shape carries meaning; size, colour and shading do not.** Symbols may be
-  drawn at any size, but the outline must stay recognisable and proportions consistent within
-  a chart. Do not rotate or mirror symbols (the loop limit's two defined parts are the
-  exception). The standard gives colour, shading and line weight no meaning. You may use
-  colour as redundant emphasis, never as the only carrier of information.
+- **SYM-02 [ISO]: basic by default, specific by intent.** Use a basic symbol when the
+  precise nature of a process or the medium of data is not known or need not be shown. A
+  specific symbol adds information ("this is a document", "a person does this") and is used
+  when that information is known **and** relevant to the chart's purpose. A data flowchart
+  about media uses Document and Direct access storage; a program flowchart uses Data. The
+  chart type decides which families appear at all (SYM-06).
+- **SYM-03 [ISO]: shape carries meaning; size, colour and shading do not.** A symbol
+  identifies its function by its outline, whatever the text inside. Keep the standard
+  outlines (do not change their angles or proportions) and keep symbol sizes as uniform as
+  possible. A symbol may be drawn in any orientation, preferably horizontal; a mirror image
+  means the same but the standard advises against it. The standard gives colour, shading and
+  line weight no meaning. You may use colour as redundant emphasis, never as the only
+  carrier of information.
 
 ## 1.3 Core symbols: geometry and strict use
 
@@ -112,7 +119,7 @@ correct use. The last column names the Mermaid shape the generator uses
 
 | Symbol (`type`) | Geometry | Meaning | Use strictly for | Never use for | Mermaid |
 |---|---|---|---|---|---|
-| **Process** (`process`) | Rectangle, normally wider than high. | Any processing function: an operation that changes the value, form or location of information. | One well-defined action when no specific process symbol applies. | A question (that is a Decision); several unrelated actions. | `rect` |
+| **Process** (`process`) | Rectangle, normally wider than high. | Any processing function: an operation that changes the value, form or location of information, or that determines which of several flow directions is followed (strict practice draws that as a Decision, FLW-06). | One well-defined action when no specific process symbol applies. | A question (that is a Decision); several unrelated actions. | `rect` |
 | **Predefined process** (`predefined_process`) | Rectangle with an extra vertical line just inside each of the left and right sides. | A named process (subroutine, module, library function) whose steps are specified elsewhere. | Calls to reusable or external routines; collapsing a sub-flow to keep one level of abstraction. | A step that is not specified anywhere. | `fr-rect` |
 | **Manual operation** (`manual_operation`) | Trapezoid with the **longer** parallel side at the **top**. | Any process performed by a human being. | Steps a person performs without automatic support (inspect, sign, approve on paper). | Keyboard entry at processing time (that is Manual input); program flowcharts. | `trap-t` |
 | **Preparation** (`preparation`) | Horizontally elongated hexagon. | Modifying an instruction or group of instructions to affect later activity: setting a switch, modifying an index register, initializing a routine. | Initializing counters, accumulators, switches and loop variables. | Ordinary processing; decisions. | `hex` |
@@ -135,8 +142,9 @@ correct use. The last column names the Mermaid shape the generator uses
 | **Punched tape** (`punched_tape`) | Rectangle with wavy top and bottom edges. | Punched (paper) tape. | `flag` |
 | **Display** (`display`) | Pointed, curved left end; straight top and bottom; rounded right end (a CRT silhouette). | Data displayed for human use: screens, indicators. | `curv-trap` |
 
-**Choosing a data symbol** (SYM-02): if the medium does not matter, use **Data** (for I/O
-steps) or **Stored data** (for a store). If it matters: printed or paper → Document; on a
+**Choosing a data symbol** (SYM-02): if the medium does not matter, use **Data** for I/O
+steps and, in data and system flowcharts, **Stored data** for a store (program flowcharts
+use only Data, SYM-06). If it matters: printed or paper → Document; on a
 screen → Display; typed or scanned at processing time → Manual input; database/disk →
 Direct access storage; tape → Sequential access storage; main memory → Internal storage.
 Card and Punched tape are for documenting those media; they are rare today.
@@ -163,9 +171,11 @@ resources charts.
 | **Annotation** (`annotation`) | Open rectangle (a bracket) joined by a dashed line to what it explains. | Descriptive comments or explanatory notes. | `brace` |
 | **Ellipsis** (`ellipsis`) | Three dots ( … ). | Omission of symbols whose type and number are not specified. | `text` |
 
-**Legacy [ANSI X3.5]: the off-page connector** (`off_page_connector`) is a pentagon shaped
-like a baseball home plate. It is on many templates and in ANSI X3.5-1970, but ISO 5807 does
-not define it. Strict mode reports it under **CON-04**; see [1.5](#15-connectors).
+**[Legacy]: the off-page connector** (`off_page_connector`) is a pentagon shaped like a
+baseball home plate. It comes from IBM flowcharting templates, where IBM listed it with
+transmittal tape and keying as its own additions to the standard symbols. Neither ISO 5807
+nor ANSI X3.5-1970 defines it. Strict checks report it under **CON-04**; see
+[1.5](#15-connectors).
 
 ### Symbol-specific conventions
 
@@ -187,8 +197,8 @@ the top edge:
 +------------------------+
 ```
 
-The detailed chart **A12** begins and ends with Terminators. In the model, set
-`"detail_ref": "A12"`.
+The detailed chart **A12** begins and ends with Terminators, and its first Terminator
+carries the reference A12. In the model, set `"detail_ref": "A12"`.
 
 **SYM-05 [ISO]: Predefined process vs striped symbol.** Both say "the detail is elsewhere".
 The Predefined process means *specified elsewhere* (a library routine, another system's
@@ -234,18 +244,22 @@ where the test happens:
 In the model: two `loop_limit` nodes with the same `loop_id`, roles `begin` and `end`. The
 end part must be reachable from the beginning part.
 
-**SYM-07 [ISO]: multiple symbols.** Overlapping copies of a data symbol (a stack of
-Documents) show several media or files of the same kind (`"multiple": true`). The convention
-is not used for process symbols; use Parallel mode for concurrent work.
+**SYM-07 [ISO]: multiple symbols.** Overlapping copies of a data symbol show several media
+or files of the same kind, several copies of a report, or different report or card formats
+(`"multiple": true`). When the stack is an ordered set, it runs from the front symbol
+(first) to the back (last). Lines may attach anywhere on the stack. The convention is
+defined for data symbols, not process symbols; use Parallel mode for concurrent work.
 
-**SYM-12 [ISO]: Ellipsis** shows omitted symbols ("file 1 … file n"). In a program
-flowchart it must never hide decision logic or error handling, because omitted logic cannot
-be reviewed.
+**SYM-12 [ISO]: Ellipsis** shows omitted symbols whose type and number need not be given
+("file 1 … file n"). It sits only on or between flowlines, in the line of the omitted
+symbols; the checker warns about a detached ellipsis. In a program flowchart it must never
+hide decision logic or error handling, because omitted logic cannot be reviewed.
 
 ## 1.4 Flowlines and flow logic
 
 **FLW-01 [ISO]: normal direction.** The main flow runs **top to bottom** and **left to
-right**. Choose `TB` for most program flowcharts; `LR` suits wide pipelines and system
+right**, and lines normally enter a symbol at the top or left and leave it at the bottom or
+right. Choose `TB` for most program flowcharts; `LR` suits wide pipelines and system
 flowcharts. Never lay out a chart bottom-to-top or right-to-left.
 
 **FLW-02 [ISO]: arrowheads.** An arrowhead is **mandatory** on any line whose direction is
@@ -276,10 +290,10 @@ A merge is a junction, not a symbol. UML's merge diamond has no ISO meaning: a d
 one exit violates SYM-09.
 
 **FLW-05 [Practice]: orthogonal routing.** Draw lines as horizontal and vertical segments.
-Enter a symbol at the top (or left) and leave at the bottom (or right). Decision exits leave
-from the vertices. Keep the main path straight and let alternatives branch to one side and
-rejoin below. Pick one convention for outcome placement (for example "Yes" continues down,
-"No" branches right) and use it in every chart of the documentation set.
+Decision exits leave from the vertices. Pick one convention for outcome placement (for
+example "Yes" continues down, "No" branches right) and use it in every chart of the
+documentation set. Keep the main path straight and let alternatives branch to one side and
+rejoin below (LAY-04).
 
 **FLW-06 [Practice]: only Decisions (and Parallel mode) branch.** In a program flowchart
 every other symbol has exactly one outgoing line. End Terminators and out-connectors have
@@ -329,15 +343,17 @@ because the reader could not tell where to continue.
 
 **CON-03 [Practice]: short, systematic identifiers.** On the same page use a single letter or
 digit (`A`, `B`, `1`). For continuation on another page use a page-qualified identifier
-(`3A`: page 3, connector A) and add the cross-reference ("to page 3") next to it if your
-documentation needs it.
+(`3A`: page 3, connector A), so that the identifier itself says where the line continues;
+add a written cross-reference ("to page 3") if your documentation needs one. The checker
+warns above 4 characters on the same page and 8 across pages.
 
 **CON-04 [ISO]: one connector symbol.** ISO 5807 has **one** connector: the small circle,
-for continuation on the same page or another page. The pentagon off-page connector is an
-ANSI X3.5-1970 legacy symbol. Strict ISO practice: circle plus page-qualified identifier,
-modelled as `{"type": "connector", "off_page": true}`. If a documentation set has adopted the
-pentagon, use it consistently and validate in lenient mode. Never mix the two conventions
-for the same identifier.
+for continuation on the same page or another page. The pentagon off-page connector comes
+from IBM flowcharting templates; neither ISO 5807 nor ANSI X3.5-1970 defines it. Strict ISO
+practice: circle plus page-qualified identifier, modelled as
+`{"type": "connector", "off_page": true}`. If a documentation set has adopted the pentagon,
+use it consistently and validate in lenient mode. Never mix the two conventions for the same
+identifier; the checker reports that in both modes.
 
 **CON-05 [Practice]: connectors must not hide structure.**
 
@@ -354,19 +370,23 @@ for the same identifier.
 
 **TXT-01 [ISO]: minimum text.** A symbol holds only the text needed to understand its
 function. Explanations, formulas, policy references and assumptions go into an
-**Annotation**. Practice limit: about 60 characters (50 in a Decision).
+**Annotation**; when an Annotation would clutter the chart, put the text on a separate page
+and cross-reference it. Practice limit: about 60 characters (50 in a Decision).
 
 **TXT-02 [ISO]: reading direction.** Text inside and beside symbols reads left to right and
 top to bottom, **whatever the direction of flow**. Never rotate text along a vertical line.
 
 **TXT-03 [ISO]: Decision outcomes are labelled.** Each exit of a Decision carries its
-outcome beside the line. Labels within one Decision are unique.
+outcome beside the line. Labels within one Decision are unique. The standard's definition of
+the Decision lets the results be written beside the exit lines; this guide makes the label
+mandatory, because an unlabelled exit cannot be read.
 
-**TXT-04 [ISO]: identifiers and descriptions sit outside the symbol.** A symbol identifier
-(used to cross-reference code listings or other documents) is placed outside the symbol,
-near its top, consistently on the same side throughout the chart. A longer symbol
-description may be placed beside it. The identifier of a striped symbol's detailed
-representation goes inside the stripe (SYM-04).
+**TXT-04 [ISO]: identifier at the upper left, description at the upper right.** A symbol
+identifier, which lets other documents such as program listings refer to the symbol, is
+written at the upper left of the symbol. A symbol description (a cross-reference, or a note
+on the symbol's particular use) goes at the upper right. Neither belongs in the symbol's own
+text. The identifier of a striped symbol's detailed representation goes between the stripe
+and the top edge (SYM-04).
 
 **TXT-08 [ISO]: annotations attach with a dashed line and never carry flow.** The
 Annotation's open bracket faces the text, and a dashed line joins it to the symbol, the line,
@@ -413,10 +433,11 @@ without an identifier is meaningless.
 
 ## 1.7 Structural integrity
 
-ISO 5807 defines symbols and drawing conventions, not program correctness. The structure
-rules below are **[Practice]**, derived from structured design (Böhm & Jacopini 1966; Dijkstra 1968)
-and testing practice. The validator enforces them because their violations are defects, not
-style.
+ISO 5807 defines symbols and drawing conventions, not program correctness. Apart from
+STR-09, the structure rules below are **[Practice]**, derived from structured design (Böhm &
+Jacopini 1966; Dijkstra 1968) and testing practice. The validator enforces them because their
+violations are defects, not style. STR-08 is an analysis finding: the tool points at
+operations that look fallible, and only a reviewer can confirm that they are.
 
 | Rule | Requirement | Typical defect it catches |
 |---|---|---|
@@ -425,10 +446,10 @@ style.
 | **STR-03** | Every symbol is reachable from an entry. | Dead logic; a forgotten line. |
 | **STR-04** | From every symbol, an end is reachable. | A dead end or a trap. |
 | **STR-05** | Every loop contains a Decision (or loop-limit test) whose exit leaves the loop. | Infinite loops, unbounded retries. |
-| **STR-06** | Decision outcomes are complete: complementary two-way labels (`Yes/No`, `>= / <`); multi-way Decisions have an `Otherwise` exit. | Unhandled values: the classic missing failure state. |
-| **STR-07** | A Decision whose exits all reach the same symbol is redundant. | A test with no effect. |
+| **STR-06** | Decision outcomes are complete: complementary two-way labels (`Yes/No`, `>= / <`); multi-way Decisions have an `Otherwise` exit unless their outcomes are exhaustive by construction (`<0`, `=0`, `>0`). | Unhandled values: the classic missing failure state. |
+| **STR-07** | A Decision whose exits all lead directly to the same symbol is redundant. | A test with no effect. |
 | **STR-08** | Every operation that can fail is followed by a Decision on its outcome, and the failure path is handled. | Happy-path-only charts. |
-| **STR-09 [ISO]** | In data flowcharts, every processing symbol has data on its input and output sides. | A data flowchart that silently became a program flowchart. |
+| **STR-09 [ISO]** | In data flowcharts, every processing symbol has data on its input and output sides, and the chart begins and ends with data symbols (or special symbols). | A data flowchart that silently became a program flowchart. |
 
 **The three structured constructs in ISO symbols.** Every well-structured program flowchart
 is built by nesting these three patterns (Böhm & Jacopini, 1966):
@@ -456,8 +477,9 @@ Sequence           Selection (if-then-else)        Iteration (test-before loop)
 - **LAY-02 [Practice]: one level of abstraction per chart** (see [2.3](#23-granularity-control)).
 - **LAY-03 [Practice]: factor out repetition.** A step or sequence that appears twice
   becomes one Predefined process.
-- **LAY-04 [Practice]: grid, alignment and uniform sizes.** One size per symbol type, even
-  spacing, the main path straight down the middle, alternatives to one side.
+- **LAY-04 [Practice]: grid, alignment and uniform sizes.** One size per symbol type (the
+  standard itself asks for uniform sizes, SYM-03), even spacing, the main path straight down
+  the middle, alternatives to one side.
 - **LAY-05 [Practice]: identify the chart.** Title on every chart; in a documentation set
   also page number, version, author and date.
 
@@ -471,10 +493,10 @@ marked **auto**.
 | 1 | Chart type chosen; symbols fit it | SYM-06 | auto |
 | 2 | Only ISO symbols, used with their ISO meaning | SYM-01 | auto |
 | 3 | Basic symbols unless the medium matters | SYM-02 | review |
-| 4 | Outlines exact; no colour-only meaning | SYM-03 | review |
-| 5 | One start Terminator; every path reaches an end | SYM-08, STR-01, STR-02, STR-04 | auto |
-| 6 | Every Decision has ≥ 2 labelled, unique, complete outcomes | SYM-09, TXT-03, STR-06 | auto |
-| 7 | Only Decisions and Parallel mode branch | FLW-06 | auto |
+| 4 | Standard outlines, uniform sizes; no colour-only meaning | SYM-03 | review (auto for Mermaid outlines) |
+| 5 | One start Terminator; every symbol reachable; every path reaches an end | SYM-08, STR-01 … STR-04 | auto |
+| 6 | Every Decision has ≥ 2 labelled, unique, complete outcomes, and not all to one symbol | SYM-09, TXT-03, STR-06, STR-07 | auto |
+| 7 | In program flowcharts only Decisions and Parallel mode branch | FLW-06 | auto |
 | 8 | Every loop has an exit; loop limits paired | STR-05, SYM-11 | auto |
 | 9 | Flow runs top-to-bottom / left-to-right; arrowheads on back-edges | FLW-01, FLW-02 | auto / review |
 | 10 | Crossings minimal; junctions are offset T-joins | FLW-03, FLW-04, FLW-05 | review |
@@ -482,12 +504,14 @@ marked **auto**.
 | 12 | Connectors continue lines; they never jump into structures | CON-05 | review |
 | 13 | Minimum text, correct grammar, horizontal text | TXT-01, TXT-02, TXT-05 … TXT-07 | auto / review |
 | 14 | Annotations attached by dashed lines, off the flow | TXT-08 | auto |
-| 15 | Identifiers outside symbols; striped symbols reference their detail | TXT-04, SYM-04, SYM-05 | review / auto |
+| 15 | Identifier at the upper left, description at the upper right; striped symbols reference their detail; no striped Predefined process | TXT-04, SYM-04, SYM-05 | review / auto |
 | 16 | Failure paths modelled for every fallible operation | STR-08 | analyze |
 | 17 | One abstraction level; ≤ ~30 symbols per page; repetition factored | LAY-01 … LAY-03 | auto / analyze |
 | 18 | Layout aligned, title present, vocabulary consistent | LAY-04, LAY-05, TXT-09 | review / auto |
 | 19 | Parallel mode, multiple symbols, ellipsis used correctly | SYM-07, SYM-10, SYM-12 | auto |
 | 20 | Line variants used with their meaning; no self-loops or duplicate lines | FLW-07, FLW-08, FLW-09 | auto |
+| 21 | Data flowcharts: data on both sides of every process, data symbols at start and end | STR-09 | auto |
+| 22 | For the tools: unique ids, references to existing symbols, well-formed model | MOD-01 … MOD-03 | auto |
 
 ---
 
@@ -701,7 +725,7 @@ suit event-driven repetition (retry until success or limit).
   process.
 - **Re-tested conditions** (`Customer known?` asked twice on one path): test once and keep
   the result, or restructure.
-- **Decisions without effect** (all exits reach the same symbol, STR-07).
+- **Decisions without effect** (all exits lead directly to the same symbol, STR-07).
 - **Intentional redundancy** (double-entry checks, four-eyes approval) is legitimate.
   Annotate it so that reviewers do not "optimise" it away.
 
@@ -840,7 +864,8 @@ meaning, and use the standard's own flexibility everywhere else.
   seconds.
 - **Read-aloud test**: narrate the main path and one exception path. Where you stumble, the
   chart is unclear.
-- **Main path straight**, exceptions to one side, consistent outcome placement (FLW-05).
+- **Main path straight**, exceptions to one side (LAY-04), consistent outcome placement
+  (FLW-05).
 - **No crossings** you could remove (FLW-03); white space between columns.
 - **Legend** for anything a non-specialist might not know (striped symbols, connector
   identifiers, abbreviations).
@@ -933,6 +958,15 @@ Findings **MOD-01**, **MOD-02** and **MOD-03** concern the JSON model itself (un
 references to existing symbols, well-formed input), not the standard. See the package
 `README.md` for installation and configuration.
 
+**How the rules were verified.** Every rule was cross-checked three ways:
+- against the standard, read through GB/T 1526-1989, an identical adoption of ISO 5807;
+- against the checker's behaviour, with a violating and a conformant chart for each checked
+  rule (`tests/test_rule_coverage.py`);
+- across the documents.
+
+[RULE-VERIFICATION.md](RULE-VERIFICATION.md) records the sources, the corrections and the
+points no accessible source could settle.
+
 ---
 
 ## References
@@ -942,6 +976,13 @@ references to existing symbols, well-formed input), not the standard. See the pa
   International Organization for Standardization. <https://www.iso.org/standard/11955.html>
 - ANSI X3.5-1970, *Flowchart Symbols and Their Usage in Information Processing*. American
   National Standards Institute (superseded by ANSI/ISO 5807-1985).
+- GB/T 1526-1989, the Chinese national standard that adopts ISO 5807:1985 as an identical
+  (IDT) text; used to cross-check the rules (see
+  [RULE-VERIFICATION.md](RULE-VERIFICATION.md)).
+- IBM, *Flowcharting Techniques*, C20-8152 (template X20-8020 and the IBM-specific offpage
+  connector).
+- N. Chapin, "Flowcharting with the ANSI standard: a tutorial," *ACM Computing Surveys* 2(2),
+  1970.
 - C. Böhm and G. Jacopini, "Flow diagrams, Turing machines and languages with only two
   formation rules," *Communications of the ACM* 9(5), 1966.
 - E. W. Dijkstra, "Go To statement considered harmful," *Communications of the ACM* 11(3),

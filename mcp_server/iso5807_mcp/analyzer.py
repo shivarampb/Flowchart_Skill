@@ -198,7 +198,7 @@ def analyze(fc: Flowchart) -> Dict[str, object]:
     for node in ctx.nodes_of("parallel_mode"):
         if ctx.indeg[node.id] >= 2:
             insights.append(_insight(
-                "bottleneck", "advisory", "SYM-10",
+                "bottleneck", "advisory", None,
                 f"Parallel mode '{node.id}' waits for {ctx.indeg[node.id]} concurrent paths: "
                 "the slowest branch sets the pace, and a failed branch blocks the join.",
                 [node.id]))

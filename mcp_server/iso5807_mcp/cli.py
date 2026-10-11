@@ -62,7 +62,7 @@ def _tool_parser() -> argparse.ArgumentParser:
     cmd.add_argument("--classic", action="store_true",
                      help=f"classic Mermaid syntax (Mermaid >= {MIN_CLASSIC_VERSION})")
     cmd.add_argument("--lenient", action="store_true",
-                     help="accept ANSI X3.5 legacy symbols and chart-type mixing")
+                     help="accept the non-ISO off-page connector and chart-type mixing")
     cmd.add_argument("--out", metavar="FILE.mmd",
                      help="also write the Mermaid code to FILE.mmd (.mmd or .mermaid)")
     cmd.add_argument("--json", action="store_true", help="print the full JSON results instead")
@@ -73,7 +73,8 @@ def _tool_parser() -> argparse.ArgumentParser:
         cmd.add_argument("file", help="flowchart JSON file, or '-' for stdin")
         if name == "validate":
             cmd.add_argument("--lenient", action="store_true",
-                             help="accept ANSI X3.5 legacy symbols and chart-type mixing")
+                             help="accept the non-ISO off-page connector and chart-type "
+                                  "mixing")
     cmd = sub.add_parser("mermaid", help="render a flowchart JSON file as Mermaid")
     cmd.add_argument("file")
     cmd.add_argument("--classic", action="store_true", help="classic syntax for old Mermaid")

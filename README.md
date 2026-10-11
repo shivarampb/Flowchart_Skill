@@ -9,10 +9,11 @@ that validates charts, analyses their logic and renders them as Mermaid.
 |---|---|
 | [`SKILL.md`](SKILL.md) | The skill: workflow, answer format and the complete index of all 52 rules. |
 | [`docs/ANSI-ISO-5807-Flowchart-Guide.md`](docs/ANSI-ISO-5807-Flowchart-Guide.md) | Part 1: rules and syntax (symbols, flowlines, connectors, text, structure). Part 2: analysis of the skill (abstraction, systemic thinking, granularity, communication). |
+| [`docs/RULE-VERIFICATION.md`](docs/RULE-VERIFICATION.md) | How every rule was cross-checked against the standard, the checker and the documents; corrections and open points. |
 | [`mcp_server/`](mcp_server/) | The engine: `check`/`validate`/`analyze`/`mermaid` CLI and an MCP server. Python ≥ 3.9, no installs. |
 | [`examples/`](examples/) | Sample flowcharts, valid and deliberately flawed. |
 | [`integrations/`](integrations/) | Optional MCP registration for Claude Code, Claude Desktop config, claude.ai Project instructions. |
-| [`tests/`](tests/) | Unit, protocol, transport, layout and SDK-interoperability tests. |
+| [`tests/`](tests/) | Unit, rule-coverage, protocol, transport, layout and SDK-interoperability tests. |
 
 ## Install as a Claude Code skill (VS Code, terminal, desktop app)
 
@@ -157,7 +158,7 @@ All tools are read-only and idempotent.
 |---|---|
 | `iso5807_symbol_reference` | Symbol geometry, meaning, when (not) to use, text and flow conventions, Mermaid shape; filter by symbol, family or chart type. |
 | `iso5807_rules` | The rule book: IDs, basis (ISO 5807 or practice), severity, rationale, fix. |
-| `validate_flowchart` | Conformance check of a flowchart model; returns `valid` and findings with rule IDs and fixes. `strict: false` accepts ANSI X3.5 legacy symbols and chart-type mixing. |
+| `validate_flowchart` | Conformance check of a flowchart model; returns `valid` and findings with rule IDs and fixes. `strict: false` stops reporting the non-ISO pentagon off-page connector and chart-type mixing. |
 | `analyze_flowchart` | Loops and exits, redundancy, bottlenecks and single points of failure, missing failure states, abstraction drift; metrics such as cyclomatic complexity and end-to-end paths. |
 | `generate_mermaid` | Mermaid code with ISO shapes (`extended`, Mermaid ≥ 11.3) or bracket shapes (`classic`, Mermaid ≥ 10.4), plus validation summary and fidelity notes. |
 | `validate_mermaid` | Parses existing Mermaid flowcharts (classic or extended syntax), maps shapes to ISO symbols, reports outline misuse and validates; returns the parsed model. |
@@ -177,7 +178,7 @@ See the example in [`SKILL.md`](SKILL.md#json-model). Fields:
 |---|---|
 | `chart_type` | `program` (default), `data`, `system`, `program_network`, `system_resources` |
 | `direction` | `TB` (default) or `LR`; `BT`/`RL` are reported (FLW-01) |
-| node `type` | `terminator`, `process`, `predefined_process`, `manual_operation`, `preparation`, `decision`, `parallel_mode`, `loop_limit`, `data`, `stored_data`, `internal_storage`, `sequential_access_storage`, `direct_access_storage`, `document`, `manual_input`, `card`, `punched_tape`, `display`, `connector`, `annotation`, `ellipsis`; legacy `off_page_connector`. Common aliases (`start`, `io`, `diamond`, `subroutine`, …) are accepted. |
+| node `type` | `terminator`, `process`, `predefined_process`, `manual_operation`, `preparation`, `decision`, `parallel_mode`, `loop_limit`, `data`, `stored_data`, `internal_storage`, `sequential_access_storage`, `direct_access_storage`, `document`, `manual_input`, `card`, `punched_tape`, `display`, `connector`, `annotation`, `ellipsis`; non-ISO `off_page_connector` (IBM template pentagon). Common aliases (`start`, `io`, `diamond`, `subroutine`, …) are accepted. |
 | node extras | `role` + `loop_id` (loop limits), `annotates` (annotations), `detail_ref` (striped symbol), `multiple` (stacked data symbols), `off_page` (cross-page connector), `page` |
 | edge `kind` | `flow` (default), `dashed`, `communication_link`, `control_transfer` |
 
@@ -224,7 +225,12 @@ configuration, and (when the `mcp` Python SDK ≥ 2 is installed) interoperabili
 official client.
 
 - Rules live in `mcp_server/iso5807_mcp/knowledge.py`; every rule ID must appear in the
-  guide (a test enforces it).
+  guide (a test enforces it). After changing a rule, regenerate the index in `SKILL.md` with
+  `python3 mcp_server/server.py rules` (paste it between the `RULE INDEX` markers) and update
+  its row in `docs/RULE-VERIFICATION.md`; tests check both.
+- Every rule marked checked, analysis or partly checked needs a violating and a conformant
+  chart in `tests/test_rule_coverage.py`. The suite fails if one is missing, or if the code
+  reports a rule marked judgment.
 - The worked example in the guide is generated: after changing the generator or the
   `refund-request` example, run `python3 mcp_server/server.py mermaid
   examples/refund-request.json` and paste the output between the `BEGIN/END GENERATED`
@@ -239,5 +245,6 @@ official client.
 ISO 5807:1985 is published by ISO and was adopted in the US as ANSI/ISO 5807-1985
 (superseding ANSI X3.5-1970). This repository paraphrases its provisions and does not
 reproduce the standard's text; rules marked *Practice* go beyond the standard and are
-labelled as such. For the authoritative text, obtain the standard from ISO or your national
+labelled as such. The rules were cross-checked against GB/T 1526-1989, an identical national
+adoption of ISO 5807:1985; see [`docs/RULE-VERIFICATION.md`](docs/RULE-VERIFICATION.md). For the authoritative text, obtain the standard from ISO or your national
 standards body.

@@ -154,8 +154,8 @@ def tool_validate_mermaid(args: Dict[str, Any]) -> Content:
 
 def _tools() -> List[Tool]:
     strict_arg = {"type": "boolean", "default": True,
-                  "description": "Strict ISO 5807 (true) or also accept ANSI X3.5 legacy "
-                                 "symbols and chart-type mixing (false)."}
+                  "description": "Strict ISO 5807 (true) or also accept the non-ISO "
+                                 "off-page connector and chart-type mixing (false)."}
     return [
         Tool(
             "iso5807_symbol_reference", "ISO 5807 symbol reference",

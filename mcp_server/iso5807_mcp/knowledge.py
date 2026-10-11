@@ -5,10 +5,14 @@ reproduced here. Every rule records its ``basis``:
 
 * ``ISO 5807``  - paraphrase of a provision of ISO 5807:1985 (adopted in the
   USA as ANSI/ISO 5807-1985, which replaced ANSI X3.5-1970).
-* ``ANSI X3.5`` - legacy ANSI X3.5-1970 convention, kept for compatibility.
 * ``Practice``  - widely adopted professional practice that goes beyond the
   letter of the standard (structured-flow integrity, readability, layout).
 * ``Schema``    - integrity rule of this server's JSON flowchart model.
+
+The provisions were cross-checked against GB/T 1526-1989, an identical (IDT)
+national adoption of ISO 5807:1985. One symbol outside the standard is kept for
+compatibility: the pentagon off-page connector of IBM flowcharting templates,
+which neither ISO 5807 nor ANSI X3.5-1970 defines.
 """
 
 from __future__ import annotations
@@ -137,7 +141,7 @@ DATA_FAMILY = (
     "display",
 )
 SPECIAL_FAMILY = ("terminator", "connector", "annotation", "ellipsis")
-EXTENSION_TYPES = ("off_page_connector",)  # ANSI X3.5-1970 legacy, not in ISO 5807
+EXTENSION_TYPES = ("off_page_connector",)  # IBM template pentagon, not in ISO 5807
 CONNECTOR_TYPES = ("connector", "off_page_connector")
 NODE_TYPES = PROCESS_FAMILY + DATA_FAMILY + SPECIAL_FAMILY + EXTENSION_TYPES
 
@@ -207,8 +211,10 @@ SYMBOLS: List[Dict[str, object]] = [
         "process", "Process", "process", "basic",
         "Rectangle, normally wider than it is high.",
         "Any processing function: an operation or group of operations that changes the "
-        "value, form or location of information. It is the basic process symbol and may "
-        "be used whenever no specific process symbol applies.",
+        "value, form or location of information, or determines which of several flow "
+        "directions is followed. It is the basic process symbol and may be used whenever "
+        "no specific process symbol applies (strict practice draws every branch as a "
+        "Decision, FLW-06).",
         ["A single, well-defined action performed by the system.",
          "A step whose specific nature (manual, predefined, preparation) does not matter."],
         ["Put a question in it - conditions belong in a Decision.",
@@ -530,21 +536,23 @@ SYMBOLS: List[Dict[str, object]] = [
         ["Showing a repeated pattern of unspecified length, e.g. 'file 1 ... file n'."],
         ["Hide decision logic or error handling in a program flowchart."],
         "Normally none (the dots themselves).",
-        "Placed in the line of omitted symbols.",
+        "Placed only on or between flowlines, in the line of the omitted symbols.",
         "text", "id[...]:::iso_ellipsis", fidelity="approximate",
     ),
     # ------------------------------------------------------- legacy (non-ISO)
     _symbol(
-        "off_page_connector", "Off-page connector (ANSI X3.5 legacy)", "special", "legacy",
+        "off_page_connector", "Off-page connector (IBM template, non-ISO)", "special",
+        "legacy",
         "Pentagon shaped like a baseball home plate (rectangle with a pointed bottom).",
-        "Entry from or exit to a flowchart on another page. Defined by ANSI X3.5-1970 and "
-        "common on flowchart templates, but not part of ISO 5807, which uses the circular "
+        "Entry from or exit to a flowchart on another page. An IBM flowcharting-template "
+        "symbol (IBM lists it with transmittal tape and keying as its own additions); "
+        "neither ISO 5807 nor ANSI X3.5-1970 defines it. ISO 5807 uses the circular "
         "Connector with a page-qualified identifier for every continuation.",
-        ["Only when the whole documentation set has adopted the ANSI X3.5 convention."],
+        ["Only when the whole documentation set has adopted the template convention."],
         ["Mix it with page-qualified circle connectors for the same purpose."],
         "Page reference plus identifier, e.g. 'P3-A'.",
         "As for Connector.",
-        "odd", "id>text]", fidelity="approximate", standard="ANSI X3.5 (legacy)",
+        "odd", "id>text]", fidelity="approximate", standard="IBM template (non-ISO)",
         note="Mermaid has no home-plate shape; the asymmetric shape is used.",
     ),
 ]
@@ -724,17 +732,20 @@ RULES: List[Dict[str, str]] = [
           "(see the symbol reference)."),
     _rule("SYM-02", "symbols", "ISO 5807", "info", "manual",
           "Basic symbols by default, specific symbols when the medium or nature matters",
-          "The basic symbols (Process, Data, Stored data, Line) may always be used. Use a "
-          "specific symbol (Document, Manual operation, Direct access storage, ...) only "
-          "when the medium or the nature of the function is known and relevant.",
+          "Use a basic symbol (Process, Data, Stored data, Line) when the precise nature of "
+          "the process or the data medium is not known or need not be shown; use a specific "
+          "symbol (Document, Manual operation, Direct access storage, ...) when it is known "
+          "and must be shown. The chart type decides which families appear at all (SYM-06).",
           "Specific symbols add information; used without need they add noise or false "
           "precision.",
           "Fall back to the basic symbol when the specific medium is irrelevant."),
-    _rule("SYM-03", "symbols", "ISO 5807", "info", "manual",
+    _rule("SYM-03", "symbols", "ISO 5807", "warning", "partial",
           "Shape carries meaning; size, colour and shading do not",
-          "Symbols may be drawn in any size, but their shape must stay recognisable and "
-          "their proportions consistent within a chart. Do not rotate or mirror symbols. "
-          "Colour, shading and line weight carry no meaning in the standard.",
+          "A symbol identifies its function by its outline, whatever the text inside. Keep "
+          "the standard outlines (do not change their angles or proportions) and keep "
+          "symbol sizes as uniform as possible. Any orientation is allowed, horizontal "
+          "preferred; a mirror image means the same but is not recommended. Colour, "
+          "shading and line weight carry no meaning in the standard.",
           "Readers identify symbols by outline; colour may be unavailable (print, "
           "colour-blind readers).",
           "Restore the standard outline; move any meaning carried by colour into text or "
@@ -744,12 +755,13 @@ RULES: List[Dict[str, str]] = [
           "A horizontal stripe near the top of a process or data symbol states that a more "
           "detailed representation exists elsewhere in the same documentation set; the "
           "identifier of that representation is written between the stripe and the top "
-          "edge. The detailed chart begins and ends with Terminators.",
+          "edge. The detailed representation begins and ends with Terminators, and the "
+          "first one carries the reference written in the stripe.",
           "Striping supports top-down decomposition without breaking the chart's level of "
           "abstraction.",
           "Use detail_ref only on process or data symbols, and give the detailed chart "
-          "start/end Terminators."),
-    _rule("SYM-05", "symbols", "ISO 5807", "info", "manual",
+          "start/end Terminators, the first carrying the same reference."),
+    _rule("SYM-05", "symbols", "ISO 5807", "info", "partial",
           "Predefined process names a function specified elsewhere",
           "Use the Predefined process for a named process (subroutine, module, library "
           "function) whose steps are specified elsewhere; use a striped symbol when the "
@@ -759,19 +771,22 @@ RULES: List[Dict[str, str]] = [
           "within the same documentation."),
     _rule("SYM-06", "symbols", "ISO 5807", "warning", "automatic",
           "Use symbols appropriate to the chart type",
-          "Program flowcharts describe control flow: process symbols, special symbols and "
-          "(for input/output) the basic Data symbol. Media-specific data symbols and manual "
-          "symbols belong to data and system flowcharts. Program network and system "
-          "resources charts show structure, not decision logic.",
+          "ISO 5807 builds program flowcharts from process, line and special symbols; the "
+          "basic Data symbol for input/output is accepted practice. The other data symbols "
+          "(Stored data and the media-specific ones) and Manual operation belong to data "
+          "and system flowcharts. Program network and system resources charts show "
+          "structure, not decision logic.",
           "Each of the five ISO chart types answers a different question; mixing their "
           "vocabularies mixes the questions.",
           "Use the basic Data symbol in program flowcharts, or change chart_type to "
           "'system' or 'data'."),
     _rule("SYM-07", "symbols", "ISO 5807", "warning", "automatic",
           "Multiple-symbol convention applies to data symbols",
-          "Overlapping copies of a data symbol (e.g. a stack of Documents) represent "
-          "several media or files of the same kind. The convention is not used for process "
-          "symbols.",
+          "Overlapping copies of a data symbol represent several media or files of the "
+          "same kind, several copies of a report, or different report or card formats. An "
+          "ordered set runs from the front symbol (first) to the back (last); lines may "
+          "attach anywhere on the stack. The convention is defined for data symbols, not "
+          "for process symbols.",
           "A stacked process symbol has no defined meaning.",
           "Remove 'multiple' from process symbols; model parallel work with Parallel mode."),
     _rule("SYM-08", "symbols", "ISO 5807", "error", "automatic",
@@ -802,17 +817,20 @@ RULES: List[Dict[str, str]] = [
           "the test is made. The end part must be reachable from the beginning part.",
           "An unmatched loop limit leaves the extent of the loop undefined.",
           "Give both parts the same loop_id and roles 'begin' and 'end'."),
-    _rule("SYM-12", "symbols", "ISO 5807", "info", "automatic",
+    _rule("SYM-12", "symbols", "ISO 5807", "warning", "automatic",
           "Ellipsis shows omitted symbols",
-          "The ellipsis indicates omitted symbols whose type and number are not specified. "
-          "In program flowcharts it must not hide decision logic or error handling.",
+          "The ellipsis stands for omitted symbols whose type and number need not be "
+          "specified, and is placed only on or between flowlines. In program flowcharts it "
+          "must not hide decision logic or error handling.",
           "Omitted logic cannot be reviewed or tested.",
-          "Replace the ellipsis with the actual symbols, or a Predefined process."),
+          "Put the ellipsis in the line of the omitted symbols; draw omitted logic, or "
+          "use a Predefined process."),
     # ---------------------------------------------------------------- flowlines
     _rule("FLW-01", "flowlines", "ISO 5807", "warning", "automatic",
           "Normal flow direction is top-to-bottom and left-to-right",
           "Lay the chart out so that the main flow runs from top to bottom and from left to "
-          "right.",
+          "right; lines normally enter a symbol at the top or left and leave it at the "
+          "bottom or right.",
           "Readers scan in the normal direction; reversing it forces every line to carry an "
           "arrowhead and slows reading.",
           "Use direction TB (or LR)."),
@@ -820,7 +838,7 @@ RULES: List[Dict[str, str]] = [
           "Arrowheads are mandatory against the normal direction",
           "Every flowline whose direction is not the normal one (upward or right-to-left, "
           "e.g. a loop back-edge) carries an arrowhead. Arrowheads may be used on any line "
-          "for clarity; in program flowcharts put them on all flowlines.",
+          "to improve readability.",
           "Without an arrowhead a line is read in the normal direction.",
           "Add arrowheads to all back-edges (the Mermaid generator always draws them)."),
     _rule("FLW-03", "flowlines", "ISO 5807", "info", "manual",
@@ -838,8 +856,9 @@ RULES: List[Dict[str, str]] = [
           "Offset the joining lines so that each join is a T."),
     _rule("FLW-05", "flowlines", "Practice", "info", "manual",
           "Route lines orthogonally and consistently",
-          "Draw flowlines as horizontal and vertical segments. Enter symbols at the top (or "
-          "left) and leave at the bottom (or right); Decision exits leave from the vertices.",
+          "Draw flowlines as horizontal and vertical segments, let Decision exits leave from "
+          "the vertices, and place Decision outcomes the same way in every chart of a "
+          "documentation set (for example Yes continues down, No branches right).",
           "Orthogonal routing keeps the reading path predictable.",
           "Replace diagonal or curved lines with orthogonal segments."),
     _rule("FLW-06", "flowlines", "Practice", "error", "automatic",
@@ -889,14 +908,17 @@ RULES: List[Dict[str, str]] = [
     _rule("CON-03", "connectors", "Practice", "warning", "automatic",
           "Keep connector identifiers short and systematic",
           "Use a single letter or number on-page (A, B, 1). Qualify cross-page identifiers "
-          "with the page (e.g. '3A' or 'P3-A') and add the cross-reference.",
+          "with the page ('3A' or 'P3-A') so that the identifier itself says where the line "
+          "continues. The checker warns above 4 characters on-page and 8 across pages.",
           "The connector circle is small; long identifiers do not fit and are hard to match.",
           "Shorten the identifier; move explanations to an Annotation."),
     _rule("CON-04", "connectors", "ISO 5807", "warning", "automatic",
-          "Off-page connector is an ANSI X3.5 legacy symbol",
+          "The pentagon off-page connector is not an ISO symbol",
           "ISO 5807 uses the circular Connector for every continuation, on the same or "
           "another page, with a page-qualified identifier. The pentagon off-page connector "
-          "comes from ANSI X3.5-1970; use it only if the whole documentation set adopts it.",
+          "comes from IBM flowcharting templates (neither ISO 5807 nor ANSI X3.5-1970 "
+          "defines it); use it only if the whole documentation set adopts it, and never "
+          "mix it with circles for one identifier.",
           "Strict ISO conformance has one connector symbol.",
           "Use type 'connector' with off_page: true and a page-qualified identifier."),
     _rule("CON-05", "connectors", "Practice", "info", "manual",
@@ -910,7 +932,8 @@ RULES: List[Dict[str, str]] = [
     _rule("TXT-01", "text", "ISO 5807", "warning", "automatic",
           "Minimum text inside symbols",
           "Write only the text needed to understand the function inside a symbol; put "
-          "explanations, formulas and references in an Annotation.",
+          "explanations, formulas and references in an Annotation, or on a separate page "
+          "with a cross-reference when an Annotation would clutter the chart.",
           "Long text forces large symbols and hides the structure.",
           "Shorten the text to verb + object (about 60 characters, 50 for Decisions) and "
           "move the rest to an Annotation."),
@@ -927,14 +950,16 @@ RULES: List[Dict[str, str]] = [
           "An unlabelled exit makes the condition unreadable.",
           "Add a distinct label to every outgoing flowline of the Decision."),
     _rule("TXT-04", "text", "ISO 5807", "info", "manual",
-          "Place symbol identifiers and descriptions outside the symbol",
-          "A symbol identifier (for cross-reference with other documentation) is placed "
-          "outside the symbol near its top, consistently on the same side throughout the "
-          "chart; a symbol description may be placed beside it. A striped symbol's "
-          "reference goes inside the stripe.",
+          "Symbol identifier at the upper left, description at the upper right",
+          "A symbol identifier, which lets other documents such as program listings refer "
+          "to the symbol, is written at the upper left of the symbol; a symbol description "
+          "(a cross-reference or a note on the symbol's particular use) at the upper "
+          "right. Neither belongs in the symbol's own text. A striped symbol's reference "
+          "goes between the stripe and the top edge.",
           "Identifiers link the chart to code listings and other documents without "
           "cluttering the symbol text.",
-          "Move identifiers out of the symbol text."),
+          "Move identifiers to the upper left and descriptions to the upper right of the "
+          "symbol."),
     _rule("TXT-05", "text", "Practice", "warning", "automatic",
           "Process text is an imperative action",
           "Phrase process and operation text as verb + object ('Calculate tax'). A question "
@@ -944,8 +969,9 @@ RULES: List[Dict[str, str]] = [
           "Rephrase as a command, or turn the step into a Decision."),
     _rule("TXT-06", "text", "Practice", "info", "automatic",
           "Decision text is a testable condition",
-          "Phrase Decision text as a closed question or comparison ('Stock >= quantity?') "
-          "whose outcomes are mutually exclusive.",
+          "Phrase Decision text as a closed, positively worded question or comparison "
+          "('Stock >= quantity?') whose outcomes are mutually exclusive; give a numeric "
+          "condition its threshold and unit ('Amount > 500 EUR?').",
           "Vague conditions ('Order OK?') hide several tests and their failure cases.",
           "Rewrite the condition so that it can be evaluated to exactly one outcome."),
     _rule("TXT-07", "text", "Practice", "warning", "automatic",
@@ -1002,7 +1028,7 @@ RULES: List[Dict[str, str]] = [
           "Decision outcomes are complete",
           "The exits of a Decision cover every possible outcome: two-way Decisions use "
           "complementary labels (Yes/No, >=/<), multi-way Decisions include an 'otherwise' "
-          "exit.",
+          "exit unless their outcomes are exhaustive by construction (<0, =0, >0).",
           "Uncovered outcomes are the missing failure states that cause defects.",
           "Make the labels complementary or add an 'Otherwise' exit."),
     _rule("STR-07", "structure", "Practice", "warning", "automatic",
@@ -1010,7 +1036,7 @@ RULES: List[Dict[str, str]] = [
           "A Decision whose exits all lead to the same symbol has no effect.",
           "It adds a test without changing the behaviour.",
           "Remove the Decision or route its outcomes differently."),
-    _rule("STR-08", "structure", "Practice", "info", "heuristic",
+    _rule("STR-08", "structure", "Practice", "warning", "heuristic",
           "Model failure states",
           "Every operation that can fail (input/output, external call, validation, payment, "
           "approval) is followed by a Decision that tests its outcome, and the failure path "
@@ -1042,7 +1068,8 @@ RULES: List[Dict[str, str]] = [
     _rule("LAY-03", "layout", "Practice", "info", "heuristic",
           "Factor out repeated logic",
           "Identical steps or step sequences that appear more than once become one "
-          "Predefined process.",
+          "Predefined process. Deliberate redundancy (a four-eyes check, a double entry "
+          "required by policy) stays, with an Annotation that says why.",
           "Repetition multiplies maintenance and hides the common structure.",
           "Define the repeated logic once and reference it with a Predefined process."),
     _rule("LAY-04", "layout", "Practice", "info", "manual",
@@ -1126,15 +1153,16 @@ def rules_reference(category: Optional[str] = None, rule_id: Optional[str] = Non
     }
 
 
-CHECK_LABELS = {"automatic": "checked", "heuristic": "analysis", "manual": "judgment"}
+CHECK_LABELS = {"automatic": "checked", "heuristic": "analysis", "partial": "partly checked",
+                "manual": "judgment"}
 BASIS_LABELS = {"ISO 5807": "ISO", "Practice": "Practice", "Schema": "Schema"}
 
 
 def rule_index_markdown(category: Optional[str] = None) -> str:
     """Every rule as a compact Markdown index (embedded in SKILL.md, printed by `rules`).
 
-    Rules that no tool can check from a JSON model ("judgment") carry their full statement,
-    because whoever draws the chart has to apply them unaided.
+    Rules that the tools check only in part ("partly checked") or not at all ("judgment")
+    carry their full statement, because whoever draws the chart has to apply them.
     """
     lines: List[str] = []
     for key, description in RULE_CATEGORIES.items():
@@ -1147,7 +1175,7 @@ def rule_index_markdown(category: Optional[str] = None) -> str:
             tags = (f"{BASIS_LABELS[rule['basis']]}, {rule['severity']}, "
                     f"{CHECK_LABELS[rule['check']]}")
             line = f"- `{rule['id']}` {rule['title']} ({tags})"
-            if rule["check"] == "manual":
+            if rule["check"] in ("partial", "manual"):
                 line += f": {rule['rule']}"
             lines.append(line)
         lines.append("")

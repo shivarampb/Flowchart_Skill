@@ -88,6 +88,14 @@ def complementary(first: str, second: str) -> bool:
     return False
 
 
+def exhaustive_comparison(labels: List[str]) -> bool:
+    """True for the trichotomy '<x', '=x', '>x', which needs no 'otherwise' exit."""
+    parsed = [_comparison(label) for label in labels]
+    if len(parsed) != 3 or not all(parsed):
+        return False
+    return {p[0] for p in parsed if p} == {"<", "=", ">"} and len({p[1] for p in parsed if p}) == 1
+
+
 def looks_like_condition(text: str) -> bool:
     stripped = text.strip()
     if stripped.endswith("?") or re.search(r"[<>=≠≤≥]", stripped):
@@ -257,8 +265,9 @@ class FlowContext:
                 if len({c.type for c in entry + exits}) > 1:
                     self.findings.append(finding(
                         "CON-04", "warning",
-                        f"Identifier '{label}' pairs a circle connector with an ANSI off-page "
-                        "connector; use one connector convention.", nodes=_ids(entry + exits)))
+                        f"Identifier '{label}' pairs a circle connector with a pentagon "
+                        "off-page connector; use one connector convention.",
+                        nodes=_ids(entry + exits)))
 
 
 def validate(fc: Flowchart, strict: bool = True,
@@ -394,9 +403,9 @@ def _check_symbols(fc: Flowchart, ctx: FlowContext, out: List[Dict[str, object]]
                 listing = ", ".join(f"{n.type} '{n.id}'" for n in misplaced[:8])
                 out.append(finding(
                     "SYM-06", "warning",
-                    "Media-specific or manual symbols in a program flowchart: " + listing
-                    + ". Program flowcharts show control flow; use the basic Data symbol or set "
-                      "chart_type to 'system'.", nodes=_ids(misplaced)))
+                    "Data symbols other than Data, or Manual operation, in a program flowchart: "
+                    + listing + ". Program flowcharts show control flow; use the basic Data "
+                    "symbol or set chart_type to 'system'.", nodes=_ids(misplaced)))
         elif chart in ("program_network", "system_resources"):
             misplaced = ctx.nodes_of(*kb.STRUCTURE_CHART_DISCOURAGED)
             if misplaced:
@@ -408,10 +417,17 @@ def _check_symbols(fc: Flowchart, ctx: FlowContext, out: List[Dict[str, object]]
         if legacy:
             out.append(finding(
                 "CON-04", "warning",
-                f"Off-page connector(s) {_fmt(_ids(legacy))} use the ANSI X3.5-1970 pentagon, "
-                "which ISO 5807 does not define.", nodes=_ids(legacy)))
+                f"Off-page connector(s) {_fmt(_ids(legacy))} use the pentagon from IBM "
+                "flowcharting templates, which ISO 5807 does not define.", nodes=_ids(legacy)))
 
     ellipses = ctx.nodes_of("ellipsis")
+    detached = [n for n in ellipses if ctx.indeg[n.id] == 0 and ctx.outdeg[n.id] == 0]
+    if detached:
+        out.append(finding(
+            "SYM-12", "warning",
+            f"Ellipsis {_fmt(_ids(detached))} is not on a flowline; ISO 5807 places an ellipsis "
+            "only on or between line symbols.", nodes=_ids(detached),
+            fix="Put the ellipsis in the line of the omitted symbols."))
     if ellipses and chart == "program":
         out.append(finding(
             "SYM-12", "info",
@@ -478,7 +494,8 @@ def _check_decisions(ctx: FlowContext, out: List[Dict[str, object]]) -> None:
                         "STR-06", "info",
                         f"Check that the exits of Decision '{node.id}' ('{first}' / '{second}') "
                         "are mutually exclusive and cover every outcome.", nodes=[node.id]))
-            elif not any(is_default_label(e.label) for e in exits):
+            elif not any(is_default_label(e.label) for e in exits) and \
+                    not exhaustive_comparison([e.label for e in exits]):
                 out.append(finding(
                     "STR-06", "warning",
                     f"Multi-way Decision '{node.id}' has {len(exits)} exits but no "
